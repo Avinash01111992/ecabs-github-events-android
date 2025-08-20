@@ -3,6 +3,7 @@ package com.ecabs.events.data
 import com.ecabs.events.data.model.GitHubEvent
 import com.ecabs.events.data.model.TrackedEventType
 import com.ecabs.events.data.remote.GitHubApi
+import com.ecabs.events.util.Constants
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import retrofit2.Response
@@ -15,15 +16,15 @@ class EventsRepository @Inject constructor(
 ) {
     private val mutex = Mutex()
     private var lastEtag: String? = null
-    private var pollIntervalSeconds: Int = 10 // default; overridden by server if present
+    private var pollIntervalSeconds: Int = Constants.Timeouts.DEFAULT_POLL_INTERVAL
 
     suspend fun fetchNewEvents(): FetchResult {
         val response: Response<List<GitHubEvent>> = api.getPublicEvents(lastEtag)
-        val newEtag = response.headers()["ETag"]
-        val serverPoll = response.headers()["X-Poll-Interval"]?.toIntOrNull()
+        val newEtag = response.headers()[Constants.Headers.ETAG]
+        val serverPoll = response.headers()[Constants.Headers.POLL_INTERVAL]?.toIntOrNull()
         if (serverPoll != null) pollIntervalSeconds = serverPoll
 
-        if (response.code() == 304) {
+        if (response.code() == Constants.HttpStatus.NOT_MODIFIED) {
             return FetchResult(emptyList(), pollIntervalSeconds, notModified = true)
         }
         val body = response.body().orEmpty()

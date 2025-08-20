@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ecabs.events.data.EventsRepository
 import com.ecabs.events.data.FetchResult
 import com.ecabs.events.data.model.GitHubEvent
+import com.ecabs.events.util.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -81,7 +82,7 @@ class EventsViewModel @Inject constructor(
                 _errorMessage.value = e.message ?: "Unknown error occurred"
                 _uiState.value = EventsUiState.Error(e.message ?: "Unknown error")
                 
-                delay(5000L)
+                delay(Constants.Timeouts.ERROR_RETRY_DELAY)
                 startPolling()
             }
         }

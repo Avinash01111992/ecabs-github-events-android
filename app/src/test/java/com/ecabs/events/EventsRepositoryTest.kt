@@ -2,6 +2,8 @@ package com.ecabs.events
 
 import com.ecabs.events.data.EventsRepository
 import com.ecabs.events.data.remote.GitHubApi
+import com.ecabs.events.data.model.TrackedEventType
+import com.ecabs.events.util.Constants
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.runBlocking
@@ -22,10 +24,10 @@ class EventsRepositoryTest {
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setHeader("ETag", "abc")
-                .setHeader("X-Poll-Interval", "60")
+                .setHeader(Constants.Headers.ETAG, "abc")
+                .setHeader(Constants.Headers.POLL_INTERVAL, "60")
                 .setBody("""[
-                    {"id":"1","type":"PushEvent","actor":{"login":"u1","avatar_url":""},"repo":{"name":"r1","url":""},"created_at":"2024-01-01T00:00:00Z"},
+                    {"id":"1","type":"${TrackedEventType.Push.raw}","actor":{"login":"u1","avatar_url":""},"repo":{"name":"r1","url":""},"created_at":"2024-01-01T00:00:00Z"},
                     {"id":"2","type":"UnknownEvent","actor":{"login":"u2","avatar_url":""},"repo":{"name":"r2","url":""},"created_at":"2024-01-01T00:00:00Z"}
                 ]""")
         )

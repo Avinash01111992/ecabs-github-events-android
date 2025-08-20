@@ -3,8 +3,12 @@ package com.ecabs.events.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,15 +17,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.ecabs.events.data.model.GitHubEvent
+import com.ecabs.events.data.model.TrackedEventType
+import com.ecabs.events.ui.theme.formatRelativeTime
+import com.ecabs.events.util.Constants
 import kotlinx.coroutines.launch
-import java.time.Duration
-import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,10 +50,10 @@ fun EventsScreen(
                     events.filter { event ->
                         val matchesType = when (selectedFilter) {
                             EventFilterType.All -> true
-                            EventFilterType.Push -> event.type == "PushEvent"
-                            EventFilterType.PR -> event.type == "PullRequestEvent"
-                            EventFilterType.Issues -> event.type == "IssuesEvent"
-                            EventFilterType.Watch -> event.type == "WatchEvent"
+                            EventFilterType.Push -> event.type == TrackedEventType.Push.raw
+                            EventFilterType.PR -> event.type == TrackedEventType.PullRequest.raw
+                            EventFilterType.Issues -> event.type == TrackedEventType.Issues.raw
+                            EventFilterType.Watch -> event.type == TrackedEventType.Watch.raw
                         }
                         val q = searchQuery.trim().lowercase()
                         val matchesQuery = q.isBlank() ||
@@ -79,10 +81,10 @@ fun EventsScreen(
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("GitHub Events") },
+            title = { Text(Constants.UI.APP_TITLE) },
             actions = {
                 Text(
-                    text = "Next refresh: ${kotlin.math.max(0, countdown)}s",
+                    text = Constants.UI.NEXT_REFRESH_PREFIX + "${kotlin.math.max(0, countdown)}s",
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(end = 16.dp)
                 )
@@ -151,7 +153,7 @@ fun EventsScreen(
                     .align(Alignment.End)
                     .padding(16.dp)
             ) {
-                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Scroll to top")
+                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = Constants.UI.SCROLL_TO_TOP_DESCRIPTION)
             }
         }
     }
@@ -171,7 +173,7 @@ private fun SearchAndFilters(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            placeholder = { Text("Search events") }
+            placeholder = { Text(Constants.UI.SEARCH_PLACEHOLDER) }
         )
         Spacer(Modifier.height(8.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -253,9 +255,9 @@ private fun formatRelativeTime(isoUtc: String): String {
 @Composable
 private fun EmptyState(modifier: Modifier = Modifier) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("No events yet", style = MaterialTheme.typography.titleMedium)
+        Text(Constants.UI.NO_EVENTS_MESSAGE, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))
-        Text("Try again in a few seconds.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+        Text(Constants.UI.NO_EVENTS_SUBTITLE, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
     }
 }
 
@@ -265,7 +267,7 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
         Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
         Spacer(Modifier.height(8.dp))
         Button(onClick = onRetry) {
-            Text("Retry")
+            Text(Constants.UI.RETRY_BUTTON)
         }
     }
 }

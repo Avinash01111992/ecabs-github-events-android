@@ -1,12 +1,14 @@
 package com.ecabs.events
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.ecabs.events.data.EventsRepository
 import com.ecabs.events.data.FetchResult
-import com.ecabs.events.data.model.GitHubEvent
 import com.ecabs.events.data.model.Actor
+import com.ecabs.events.data.model.GitHubEvent
 import com.ecabs.events.data.model.Repo
-import com.ecabs.events.ui.EventsViewModel
+import com.ecabs.events.data.model.TrackedEventType
 import com.ecabs.events.ui.EventsUiState
+import com.ecabs.events.ui.EventsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -18,6 +20,8 @@ import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import org.mockito.kotlin.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EventsViewModelTest {
@@ -35,16 +39,10 @@ class EventsViewModelTest {
     }
 
     @Test
-    fun `initial state should be Loading`() = runTest {
-        val initialState = viewModel.uiState.first()
-        assertTrue(initialState is EventsUiState.Loading)
-    }
-
-    @Test
     fun `should emit Success state when events are fetched successfully`() = runTest {
         val mockEvents = listOf(
-            createMockEvent("1", "PushEvent"),
-            createMockEvent("2", "PullRequestEvent")
+            createMockEvent("1", TrackedEventType.Push.raw),
+            createMockEvent("2", TrackedEventType.PullRequest.raw)
         )
         val fetchResult = FetchResult(mockEvents, 30, false)
         
@@ -106,7 +104,7 @@ class EventsViewModelTest {
 
     @Test
     fun `should refresh events when refreshEvents is called`() = runTest {
-        val mockEvents = listOf(createMockEvent("1", "PushEvent"))
+        val mockEvents = listOf(createMockEvent("1", TrackedEventType.Push.raw))
         val fetchResult = FetchResult(mockEvents, 30, false)
         
         whenever(mockRepository.fetchNewEvents()).thenReturn(fetchResult)

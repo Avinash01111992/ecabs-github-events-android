@@ -2,6 +2,7 @@ package com.ecabs.events.di
 
 import com.ecabs.events.BuildConfig
 import com.ecabs.events.data.remote.GitHubApi
+import com.ecabs.events.util.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,11 +39,11 @@ object NetworkModule {
             
             val token = BuildConfig.GITHUB_TOKEN
             if (token.isNotEmpty()) {
-                requestBuilder.addHeader("Authorization", "token $token")
+                requestBuilder.addHeader(Constants.Network.AUTHORIZATION_HEADER, Constants.Network.TOKEN_PREFIX + token)
             }
             
-            requestBuilder.addHeader("Accept", "application/vnd.github.v3+json")
-            requestBuilder.addHeader("User-Agent", "GitHub-Events-Android")
+            requestBuilder.addHeader(Constants.Network.ACCEPT_HEADER, Constants.Network.GITHUB_API_VERSION)
+            requestBuilder.addHeader(Constants.Network.USER_AGENT_HEADER, Constants.Network.USER_AGENT_VALUE)
             
             chain.proceed(requestBuilder.build())
         }
@@ -57,9 +58,9 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor(tokenInterceptor)
             .addInterceptor(loggingInterceptor)
-            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .connectTimeout(Constants.Network.CONNECT_TIMEOUT, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(Constants.Network.READ_TIMEOUT, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(Constants.Network.WRITE_TIMEOUT, java.util.concurrent.TimeUnit.SECONDS)
             .build()
     }
 
@@ -67,7 +68,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://api.github.com/")
+            .baseUrl(Constants.Network.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create())
             .build()

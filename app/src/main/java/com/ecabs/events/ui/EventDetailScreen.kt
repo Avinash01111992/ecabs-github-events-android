@@ -3,7 +3,7 @@ package com.ecabs.events.ui
 import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons.AutoMirrored
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -14,11 +14,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ecabs.events.data.model.GitHubEvent
+import com.ecabs.events.util.Constants
 import java.time.Duration
 import java.time.Instant
 import androidx.core.net.toUri
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,19 +32,19 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
         TopAppBar(
             title = { 
                 Text(
-                    text = "Event Details (${event?.actor?.login ?: ""})",
+                    text = Constants.UI.EVENT_DETAILS_TITLE_PREFIX + "${event?.actor?.login ?: ""}" + Constants.UI.EVENT_DETAILS_TITLE_SUFFIX,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             },
             navigationIcon = {
-                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Constants.UI.BACK_BUTTON_DESCRIPTION) }
             },
             actions = {
                 if (repoWebUrl != null) {
                     IconButton(onClick = { shareText(context, repoWebUrl) }) {
-                        Icon(Icons.Filled.Share, contentDescription = "Share repo")
+                        Icon(Icons.Filled.Share, contentDescription = Constants.UI.SHARE_REPO_DESCRIPTION)
                     }
                 }
             }
@@ -50,7 +52,7 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
 
         if (event == null) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No event data", style = MaterialTheme.typography.titleMedium)
+                Text(Constants.UI.NO_EVENT_DATA, style = MaterialTheme.typography.titleMedium)
             }
         } else {
             LazyColumn(
@@ -70,7 +72,7 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "📋 Event Information",
+                                    text = "${Constants.UI.EVENT_INFO_ICON} Event Information",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -104,7 +106,7 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                     ) {
                         Column(Modifier.padding(16.dp)) {
                             Text(
-                                text = "👤 Actor Information",
+                                text = "${Constants.UI.ACTOR_INFO_ICON} Actor Information",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -128,7 +130,7 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                         ) {
                             Column(Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "🔍 Event Details",
+                                    text = "${Constants.UI.EVENT_DETAILS_ICON} Event Details",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -165,7 +167,7 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                     ) {
                         Column(Modifier.padding(16.dp)) {
                             Text(
-                                text = "🚀 Actions",
+                                text = "${Constants.UI.ACTIONS_ICON} Actions",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -178,13 +180,13 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                                     onClick = { openUrl(context, "https://github.com/${event.actor.login}") },
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Text("👤 View Profile")
+                                    Text("${Constants.UI.VIEW_PROFILE_ICON} View Profile")
                                 }
                                 OutlinedButton(
                                     onClick = { openUrl(context, repoWebUrl ?: "") },
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Text("📁 Open Repo")
+                                    Text("${Constants.UI.OPEN_REPO_ICON} Open Repo")
                                 }
                             }
                         }
