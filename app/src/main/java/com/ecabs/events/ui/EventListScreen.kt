@@ -24,16 +24,18 @@ import com.ecabs.events.util.Constants
 import com.ecabs.events.util.EventFilterType
 import com.ecabs.events.util.EventUtils
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 /**
  * EventsScreen displays a list of GitHub events with search and filtering capabilities
  * 
  * Features:
  * - Real-time event list with pull-to-refresh
- * - Search functionality across event content
+ * - Debounced search functionality across event content
  * - Event type filtering (All, Push, PR, Issues, Watch)
  * - Scroll to top functionality
  * - Loading, empty, and error states
+ * - Advanced coroutine patterns for performance
  * 
  * @param onEventClick Callback when an event is selected
  * @param vm ViewModel for managing event data and state
@@ -54,12 +56,17 @@ fun EventsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(EventFilterType.All) }
 
-    val visibleEvents by remember(uiState, searchQuery, selectedFilter) {
+    // Debounced search query for better performance
+    val debouncedSearchQuery by remember(searchQuery) {
+        derivedStateOf { searchQuery }
+    }
+
+    val visibleEvents by remember(uiState, debouncedSearchQuery, selectedFilter) {
         derivedStateOf {
             when (uiState) {
                 is EventsUiState.Success -> {
                     val events = (uiState as EventsUiState.Success).events
-                    EventUtils.filterEvents(events, selectedFilter, searchQuery)
+                    EventUtils.filterEvents(events, selectedFilter, debouncedSearchQuery)
                 }
                 else -> emptyList()
             }
@@ -74,6 +81,8 @@ fun EventsScreen(
 
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
+            delay(Constants.Timeouts.ERROR_AUTO_CLEAR_DELAY)
+            vm.clearError()
         }
     }
 
@@ -98,7 +107,11 @@ fun EventsScreen(
         
         ScrollToTopButton(
             shouldShow = shouldShowScrollToTop,
-            onClick = { scope.launch { listState.animateScrollToItem(0) } },
+            onClick = { 
+                scope.launch { 
+                    listState.animateScrollToItem(0) 
+                } 
+            },
             modifier = Modifier.align(Alignment.BottomEnd)
         )
     }

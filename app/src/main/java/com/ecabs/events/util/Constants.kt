@@ -24,9 +24,15 @@ object Constants {
     }
     
     object Timeouts {
-        const val DEFAULT_POLL_INTERVAL = 10
-        const val ERROR_RETRY_DELAY = 5000L
-    }
+    const val DEFAULT_POLL_INTERVAL = 10
+    const val ERROR_RETRY_DELAY = 5000L
+    const val SEARCH_DEBOUNCE_DELAY = 300L
+    const val ERROR_AUTO_CLEAR_DELAY = 5000L
+    const val RETRY_MAX_ATTEMPTS = 3
+    const val RETRY_INITIAL_DELAY = 1000L
+    const val RETRY_MAX_DELAY = 10000L
+    const val RETRY_BACKOFF_FACTOR = 2.0
+}
     
     object UI {
         const val EVENT_INFO_ICON = "📋"

@@ -6,13 +6,12 @@ import com.ecabs.events.data.EventsRepository
 import com.ecabs.events.data.FetchResult
 import com.ecabs.events.data.model.GitHubEvent
 import com.ecabs.events.util.Constants
+import com.ecabs.events.util.CoroutineUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,7 +20,13 @@ class EventsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _events = MutableStateFlow<List<GitHubEvent>>(emptyList())
-    val events: StateFlow<List<GitHubEvent>> = _events.asStateFlow()
+    val events: StateFlow<List<GitHubEvent>> = _events
+        .map { events -> events.sortedByDescending { it.createdAt } }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
@@ -40,78 +45,123 @@ class EventsViewModel @Inject constructor(
 
     private var pollJob: Job? = null
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+        handleException(exception)
+    }
+
     init {
         startPolling()
     }
 
     fun startPolling() {
         pollJob?.cancel()
-        pollJob = viewModelScope.launch {
-            try {
+        pollJob = viewModelScope.launch(exceptionHandler) {
+            supervisorScope {
                 while (true) {
-                    _isRefreshing.value = true
-                    _uiState.value = EventsUiState.Loading
-                    
-                    val result: FetchResult = repo.fetchNewEvents()
-                    _nextPoll.value = result.nextPollSeconds
-                    
-                    if (!result.notModified && result.events.isNotEmpty()) {
-                        val existing = _events.value.associateBy { it.id }.toMutableMap()
-                        for (e in result.events) {
-                            existing[e.id] = e
-                        }
-                        _events.value = existing.values.sortedByDescending { it.createdAt }
-                        _uiState.value = EventsUiState.Success(_events.value)
-                    } else if (_events.value.isEmpty()) {
-                        _uiState.value = EventsUiState.Empty
-                    } else {
-                        _uiState.value = EventsUiState.Success(_events.value)
-                    }
-                    
-                    _isRefreshing.value = false
-                    _errorMessage.value = null
-                    
-                    val sleep = kotlin.math.max(10, _nextPoll.value)
-                    for (remaining in sleep downTo 0) {
-                        _countdown.value = remaining
-                        delay(1000L)
+                    try {
+                        pollEvents()
+                        countdownTimer()
+                    } catch (e: Exception) {
+                        handleError(e)
+                        delay(Constants.Timeouts.ERROR_RETRY_DELAY)
                     }
                 }
-            } catch (e: Exception) {
-                _isRefreshing.value = false
-                _errorMessage.value = e.message ?: "Unknown error occurred"
-                _uiState.value = EventsUiState.Error(e.message ?: "Unknown error")
-                
-                delay(Constants.Timeouts.ERROR_RETRY_DELAY)
-                startPolling()
             }
         }
     }
 
+    private suspend fun pollEvents() {
+        _isRefreshing.value = true
+        _uiState.value = EventsUiState.Loading
+        
+        val result = CoroutineUtils.retryWithBackoff(
+            maxAttempts = Constants.Timeouts.RETRY_MAX_ATTEMPTS,
+            initialDelay = Constants.Timeouts.RETRY_INITIAL_DELAY,
+            maxDelay = Constants.Timeouts.RETRY_MAX_DELAY,
+            factor = Constants.Timeouts.RETRY_BACKOFF_FACTOR
+        ) {
+            withContext(Dispatchers.IO) {
+                repo.fetchNewEvents()
+            }
+        }
+        
+        _nextPoll.value = result.nextPollSeconds
+        
+        if (!result.notModified && result.events.isNotEmpty()) {
+            updateEvents(result.events)
+            _uiState.value = EventsUiState.Success(_events.value)
+        } else if (_events.value.isEmpty()) {
+            _uiState.value = EventsUiState.Empty
+        } else {
+            _uiState.value = EventsUiState.Success(_events.value)
+        }
+        
+        _isRefreshing.value = false
+        _errorMessage.value = null
+    }
+
+    private suspend fun countdownTimer() {
+        val sleep = maxOf(10, _nextPoll.value)
+        for (remaining in sleep downTo 0) {
+            _countdown.value = remaining
+            delay(1000L)
+        }
+    }
+
+    private fun updateEvents(newEvents: List<GitHubEvent>) {
+        val existing = _events.value.associateBy { it.id }.toMutableMap()
+        for (event in newEvents) {
+            existing[event.id] = event
+        }
+        _events.value = existing.values.toList()
+    }
+
     fun refreshEvents() {
-        viewModelScope.launch {
+        viewModelScope.launch(exceptionHandler) {
             try {
                 _isRefreshing.value = true
                 _uiState.value = EventsUiState.Loading
                 
-                val result: FetchResult = repo.fetchNewEvents()
-                if (!result.notModified && result.events.isNotEmpty()) {
-                    val existing = _events.value.associateBy { it.id }.toMutableMap()
-                    for (e in result.events) {
-                        existing[e.id] = e
+                val result = CoroutineUtils.retryWithBackoff(
+                    maxAttempts = Constants.Timeouts.RETRY_MAX_ATTEMPTS,
+                    initialDelay = Constants.Timeouts.RETRY_INITIAL_DELAY,
+                    maxDelay = Constants.Timeouts.RETRY_MAX_DELAY,
+                    factor = Constants.Timeouts.RETRY_BACKOFF_FACTOR
+                ) {
+                    withContext(Dispatchers.IO) {
+                        repo.fetchNewEvents()
                     }
-                    _events.value = existing.values.sortedByDescending { it.createdAt }
+                }
+                
+                if (!result.notModified && result.events.isNotEmpty()) {
+                    updateEvents(result.events)
                     _uiState.value = EventsUiState.Success(_events.value)
                 }
                 
                 _isRefreshing.value = false
                 _errorMessage.value = null
             } catch (e: Exception) {
-                _isRefreshing.value = false
-                _errorMessage.value = e.message ?: "Failed to refresh events"
-                _uiState.value = EventsUiState.Error(e.message ?: "Unknown error")
+                handleError(e)
             }
         }
+    }
+
+    private fun handleException(exception: Throwable) {
+        when (exception) {
+            is IOException -> _errorMessage.value = "Network error: ${exception.message}"
+            is HttpException -> _errorMessage.value = "API error: ${exception.message}"
+            is CancellationException -> return
+            else -> _errorMessage.value = "Unexpected error: ${exception.message}"
+        }
+        
+        _isRefreshing.value = false
+        _uiState.value = EventsUiState.Error(_errorMessage.value ?: "Unknown error")
+    }
+
+    private fun handleError(exception: Exception) {
+        _isRefreshing.value = false
+        _errorMessage.value = exception.message ?: "Unknown error occurred"
+        _uiState.value = EventsUiState.Error(_errorMessage.value ?: "Unknown error")
     }
 
     fun clearError() {
