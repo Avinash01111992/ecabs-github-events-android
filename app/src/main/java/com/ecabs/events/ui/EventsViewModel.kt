@@ -3,7 +3,6 @@ package com.ecabs.events.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ecabs.events.data.EventsRepository
-import com.ecabs.events.data.FetchResult
 import com.ecabs.events.data.model.GitHubEvent
 import com.ecabs.events.util.Constants
 import com.ecabs.events.util.CoroutineUtils
@@ -32,7 +31,6 @@ class EventsViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     private val _nextPoll = MutableStateFlow(repo.pollInterval())
-    val nextPoll: StateFlow<Int> = _nextPoll.asStateFlow()
 
     private val _countdown = MutableStateFlow(repo.pollInterval())
     val countdown: StateFlow<Int> = _countdown.asStateFlow()
@@ -46,7 +44,7 @@ class EventsViewModel @Inject constructor(
     private var pollJob: Job? = null
 
     private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-        handleException(exception)
+        handleError(exception)
     }
 
     init {
@@ -176,7 +174,6 @@ class EventsViewModel @Inject constructor(
 }
 
 sealed class EventsUiState {
-    object Loading : EventsUiState()
     object Empty : EventsUiState()
     data class Success(val events: List<GitHubEvent>) : EventsUiState()
     data class Error(val message: String) : EventsUiState()
