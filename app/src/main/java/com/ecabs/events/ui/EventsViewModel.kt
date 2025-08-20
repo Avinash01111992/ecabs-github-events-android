@@ -72,7 +72,6 @@ class EventsViewModel @Inject constructor(
 
     private suspend fun pollEvents() {
         _isRefreshing.value = true
-        _uiState.value = EventsUiState.Loading
         
         val result = CoroutineUtils.retryWithBackoff(
             maxAttempts = Constants.Timeouts.RETRY_MAX_ATTEMPTS,
@@ -120,7 +119,6 @@ class EventsViewModel @Inject constructor(
         viewModelScope.launch(exceptionHandler) {
             try {
                 _isRefreshing.value = true
-                _uiState.value = EventsUiState.Loading
                 
                 val result = CoroutineUtils.retryWithBackoff(
                     maxAttempts = Constants.Timeouts.RETRY_MAX_ATTEMPTS,
