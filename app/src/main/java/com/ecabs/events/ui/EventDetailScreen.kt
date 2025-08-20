@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -14,12 +15,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ecabs.events.data.model.GitHubEvent
 import com.ecabs.events.util.Constants
-import java.time.Duration
-import java.time.Instant
+import com.ecabs.events.util.TimeUtils
+import com.ecabs.events.util.EventUtils
+import com.ecabs.events.util.IntentUtils
 import androidx.core.net.toUri
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.lazy.items
 
 /**
  * EventDetailsScreen displays comprehensive information about a GitHub event
@@ -37,10 +39,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 @Composable
 fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
     val context = LocalContext.current
-    val repoWebUrl = remember(event) { event?.repo?.name?.let { "https://github.com/$it" } }
+    val repoWebUrl = remember(event) { event?.repo?.name?.let { EventUtils.buildRepoUrl(it) } }
 
     Column(Modifier.fillMaxSize()) {
-        // Top app bar with dynamic title and action buttons
         TopAppBar(
             title = { 
                 Text(
@@ -57,7 +58,7 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
             },
             actions = {
                 if (repoWebUrl != null) {
-                    IconButton(onClick = { shareText(context, repoWebUrl) }) {
+                    IconButton(onClick = { IntentUtils.shareText(context, repoWebUrl) }) {
                         Icon(Icons.Filled.Share, contentDescription = Constants.UI.SHARE_REPO_DESCRIPTION)
                     }
                 }
@@ -65,18 +66,15 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
         )
 
         if (event == null) {
-            // Empty state when no event data is available
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(Constants.UI.NO_EVENT_DATA, style = MaterialTheme.typography.titleMedium)
             }
         } else {
-            // Main content area with scrollable event details
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Event Information Section
                 item {
                     InfoCard(
                         icon = Constants.UI.EVENT_INFO_ICON,
@@ -85,12 +83,11 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                             EventTypeChip(eventType = event.type)
                         }
                     ) {
-                        // Event details in a two-column grid layout
                         Row(Modifier.fillMaxWidth()) {
                             Column(Modifier.weight(1f)) {
                                 DetailItem("Event ID", event.id, isMonospace = true)
                                 DetailItem("Public", if (event.public) "✅ Yes" else "❌ No")
-                                DetailItem("Created", formatRelativeTime(event.createdAt))
+                                DetailItem("Created", TimeUtils.formatRelativeTime(event.createdAt))
                             }
                             Column(Modifier.weight(1f)) {
                                 DetailItem("Type", event.type)
@@ -101,7 +98,6 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                     }
                 }
                 
-                // Actor Information Section
                 item {
                     InfoCard(
                         icon = Constants.UI.ACTOR_INFO_ICON,
@@ -109,7 +105,6 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                     ) {
                         DetailItem("Actor ID", event.actor.id.toString(), isMonospace = true)
                         DetailItem("Username", event.actor.login)
-                        // Display name only if different from username
                         if (event.actor.displayLogin != null && event.actor.displayLogin != event.actor.login) {
                             DetailItem("Display Name", event.actor.displayLogin)
                         }
@@ -117,14 +112,12 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                     }
                 }
                 
-                // Event Payload Details Section (conditional)
                 if (event.payload != null) {
                     item {
                         InfoCard(
                             icon = Constants.UI.EVENT_DETAILS_ICON,
                             title = "Event Details"
                         ) {
-                            // Display payload information based on event type
                             if (event.payload.action != null) {
                                 DetailItem("Action", event.payload.action)
                             }
@@ -132,10 +125,10 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                                 DetailItem("Push ID", event.payload.pushId.toString(), isMonospace = true)
                             }
                             if (event.payload.size != null) {
-                                DetailItem("Commits", "${event.payload.size} commit${if (event.payload.size != 1) "s" else ""}")
+                                DetailItem("Commits", EventUtils.formatCommitCount(event.payload.size))
                             }
                             if (event.payload.ref != null) {
-                                DetailItem("Branch", event.payload.ref.removePrefix("refs/heads/"))
+                                DetailItem("Branch", EventUtils.formatBranchName(event.payload.ref))
                             }
                             if (event.payload.head != null) {
                                 DetailItem("Head SHA", event.payload.head, isMonospace = true)
@@ -148,15 +141,14 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
                     }
                 }
                 
-                // Action Buttons Section
                 item {
                     InfoCard(
                         icon = Constants.UI.ACTIONS_ICON,
                         title = "Actions"
                     ) {
                         ActionButtonsRow(
-                            onViewProfile = { openUrl(context, "https://github.com/${event.actor.login}") },
-                            onOpenRepo = { openUrl(context, repoWebUrl ?: "") }
+                            onViewProfile = { IntentUtils.openUrl(context, EventUtils.buildProfileUrl(event.actor.login)) },
+                            onOpenRepo = { IntentUtils.openUrl(context, repoWebUrl ?: "") }
                         )
                     }
                 }
@@ -185,7 +177,6 @@ private fun InfoCard(
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
-            // Section header with icon, title, and optional trailing content
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -212,8 +203,8 @@ private fun InfoCard(
 @Composable
 private fun EventTypeChip(eventType: String) {
     AssistChip(
-        onClick = {}, // Read-only chip
-        label = { Text(eventType.removeSuffix("Event")) }
+        onClick = {},
+        label = { Text(EventUtils.formatEventType(eventType)) }
     )
 }
 
@@ -279,54 +270,4 @@ private fun DetailItem(
             overflow = TextOverflow.Ellipsis
         )
     }
-}
-
-/**
- * Opens a URL in the default browser
- * 
- * @param context Android context for starting the intent
- * @param url The URL to open
- */
-private fun openUrl(context: android.content.Context, url: String) {
-    runCatching {
-        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
-    }
-}
-
-/**
- * Formats ISO UTC timestamp to relative time (e.g., "3h ago", "2d ago")
- * 
- * @param isoUtc ISO 8601 formatted UTC timestamp
- * @return Human-readable relative time string
- */
-private fun formatRelativeTime(isoUtc: String): String {
-    return try {
-        val then = Instant.parse(isoUtc)
-        val now = Instant.now()
-        val seconds = Duration.between(then, now).seconds.coerceAtLeast(0)
-        
-        when {
-            seconds < 60 -> "${seconds}s ago"
-            seconds < 60 * 60 -> "${seconds / 60}m ago"
-            seconds < 60 * 60 * 24 -> "${seconds / 3600}h ago"
-            else -> "${seconds / 86400}d ago"
-        }
-    } catch (_: Exception) {
-        // Fallback to original timestamp if parsing fails
-        isoUtc
-    }
-}
-
-/**
- * Shares text content using system share intent
- * 
- * @param context Android context for starting the intent
- * @param text The text content to share
- */
-private fun shareText(context: android.content.Context, text: String) {
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, text)
-    }
-    context.startActivity(Intent.createChooser(intent, null))
 }

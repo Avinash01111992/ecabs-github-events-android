@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,11 +22,24 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.ecabs.events.data.model.GitHubEvent
-import com.ecabs.events.data.model.TrackedEventType
-import com.ecabs.events.ui.theme.formatRelativeTime
 import com.ecabs.events.util.Constants
+import com.ecabs.events.util.EventFilterType
+import com.ecabs.events.util.EventUtils
 import kotlinx.coroutines.launch
 
+/**
+ * EventsScreen displays a list of GitHub events with search and filtering capabilities
+ * 
+ * Features:
+ * - Real-time event list with pull-to-refresh
+ * - Search functionality across event content
+ * - Event type filtering (All, Push, PR, Issues, Watch)
+ * - Scroll to top functionality
+ * - Loading, empty, and error states
+ * 
+ * @param onEventClick Callback when an event is selected
+ * @param vm ViewModel for managing event data and state
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventsScreen(
@@ -47,21 +62,7 @@ fun EventsScreen(
             when (uiState) {
                 is EventsUiState.Success -> {
                     val events = (uiState as EventsUiState.Success).events
-                    events.filter { event ->
-                        val matchesType = when (selectedFilter) {
-                            EventFilterType.All -> true
-                            EventFilterType.Push -> event.type == TrackedEventType.Push.raw
-                            EventFilterType.PR -> event.type == TrackedEventType.PullRequest.raw
-                            EventFilterType.Issues -> event.type == TrackedEventType.Issues.raw
-                            EventFilterType.Watch -> event.type == TrackedEventType.Watch.raw
-                        }
-                        val q = searchQuery.trim().lowercase()
-                        val matchesQuery = q.isBlank() ||
-                            event.actor.login.lowercase().contains(q) ||
-                            event.repo.name.lowercase().contains(q) ||
-                            event.type.lowercase().contains(q)
-                        matchesType && matchesQuery
-                    }
+                    EventUtils.filterEvents(events, selectedFilter, searchQuery)
                 }
                 else -> emptyList()
             }
@@ -80,113 +81,260 @@ fun EventsScreen(
     }
 
     Column(Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text(Constants.UI.APP_TITLE) },
-            actions = {
-                Text(
-                    text = Constants.UI.NEXT_REFRESH_PREFIX + "${kotlin.math.max(0, countdown)}s",
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.padding(end = 16.dp)
-                )
-            }
-        )
-
-        SearchAndFilters(
+        EventsTopAppBar(countdown = countdown)
+        SearchAndFiltersSection(
             searchQuery = searchQuery,
             onSearchChange = { searchQuery = it },
             selected = selectedFilter,
             onSelect = { selectedFilter = it }
         )
-
-        Box(Modifier.fillMaxSize()) {
-            when (uiState) {
-                is EventsUiState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-                is EventsUiState.Empty -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        EmptyState()
-                    }
-                }
-                is EventsUiState.Error -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        ErrorState(
-                            message = (uiState as EventsUiState.Error).message,
-                            onRetry = { vm.refreshEvents() }
-                        )
-                    }
-                }
-                is EventsUiState.Success -> {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 88.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(visibleEvents, key = { it.id }) { event ->
-                            EventCard(event = event, onClick = { onEventClick(event) })
-                        }
-                    }
-                }
-            }
-
-            if (refreshing) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(top = 80.dp),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-        }
-
-        if (shouldShowScrollToTop) {
-            FloatingActionButton(
-                onClick = {
-                    scope.launch { listState.animateScrollToItem(0) }
-                },
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(16.dp)
-            ) {
-                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = Constants.UI.SCROLL_TO_TOP_DESCRIPTION)
-            }
-        }
+        EventsContent(
+            uiState = uiState,
+            listState = listState,
+            visibleEvents = visibleEvents,
+            refreshing = refreshing,
+            onEventClick = onEventClick,
+            onRetry = { vm.refreshEvents() }
+        )
+        ScrollToTopButton(
+            shouldShow = shouldShowScrollToTop,
+            onClick = { scope.launch { listState.animateScrollToItem(0) } }
+        )
     }
 }
 
+/**
+ * Top app bar with title and countdown timer
+ */
 @Composable
-private fun SearchAndFilters(
+private fun EventsTopAppBar(countdown: Int) {
+    TopAppBar(
+        title = { Text(Constants.UI.APP_TITLE) },
+        actions = {
+            Text(
+                text = Constants.UI.NEXT_REFRESH_PREFIX + "${kotlin.math.max(0, countdown)}s",
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(end = 16.dp)
+            )
+        }
+    )
+}
+
+/**
+ * Search and filter section with input field and filter chips
+ */
+@Composable
+private fun SearchAndFiltersSection(
     searchQuery: String,
     onSearchChange: (String) -> Unit,
     selected: EventFilterType,
     onSelect: (EventFilterType) -> Unit
 ) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = onSearchChange,
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            placeholder = { Text(Constants.UI.SEARCH_PLACEHOLDER) }
+        SearchInput(
+            searchQuery = searchQuery,
+            onSearchChange = onSearchChange
         )
         Spacer(Modifier.height(8.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = selected == EventFilterType.All, onClick = { onSelect(EventFilterType.All) }, label = { Text("All") })
-            FilterChip(selected = selected == EventFilterType.Push, onClick = { onSelect(EventFilterType.Push) }, label = { Text("Push") })
-            FilterChip(selected = selected == EventFilterType.PR, onClick = { onSelect(EventFilterType.PR) }, label = { Text("PR") })
-            FilterChip(selected = selected == EventFilterType.Issues, onClick = { onSelect(EventFilterType.Issues) }, label = { Text("Issues") })
-            FilterChip(selected = selected == EventFilterType.Watch, onClick = { onSelect(EventFilterType.Watch) }, label = { Text("Watch") })
-        }
+        FilterChipsRow(
+            selected = selected,
+            onSelect = onSelect
+        )
         Spacer(Modifier.height(8.dp))
     }
 }
 
+/**
+ * Search input field with search icon
+ */
+@Composable
+private fun SearchInput(
+    searchQuery: String,
+    onSearchChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onSearchChange,
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        placeholder = { Text(Constants.UI.SEARCH_PLACEHOLDER) }
+    )
+}
+
+/**
+ * Row of filter chips for event types
+ */
+@Composable
+private fun FilterChipsRow(
+    selected: EventFilterType,
+    onSelect: (EventFilterType) -> Unit
+) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+            selected = selected == EventFilterType.All,
+            onClick = { onSelect(EventFilterType.All) },
+            label = { Text("All") }
+        )
+        FilterChip(
+            selected = selected == EventFilterType.Push,
+            onClick = { onSelect(EventFilterType.Push) },
+            label = { Text("Push") }
+        )
+        FilterChip(
+            selected = selected == EventFilterType.PR,
+            onClick = { onSelect(EventFilterType.PR) },
+            label = { Text("PR") }
+        )
+        FilterChip(
+            selected = selected == EventFilterType.Issues,
+            onClick = { onSelect(EventFilterType.Issues) },
+            label = { Text("Issues") }
+        )
+        FilterChip(
+            selected = selected == EventFilterType.Watch,
+            onClick = { onSelect(EventFilterType.Watch) },
+            label = { Text("Watch") }
+        )
+    }
+}
+
+/**
+ * Main content area with different states and event list
+ */
+@Composable
+private fun EventsContent(
+    uiState: EventsUiState,
+    listState: LazyListState,
+    visibleEvents: List<GitHubEvent>,
+    refreshing: Boolean,
+    onEventClick: (GitHubEvent) -> Unit,
+    onRetry: () -> Unit
+) {
+    Box(Modifier.fillMaxSize()) {
+        when (uiState) {
+            is EventsUiState.Loading -> LoadingState()
+            is EventsUiState.Empty -> EmptyState()
+            is EventsUiState.Error -> ErrorState(
+                message = (uiState as EventsUiState.Error).message,
+                onRetry = onRetry
+            )
+            is EventsUiState.Success -> EventsList(
+                listState = listState,
+                visibleEvents = visibleEvents,
+                onEventClick = onEventClick
+            )
+        }
+
+        if (refreshing) {
+            RefreshingIndicator()
+        }
+    }
+}
+
+/**
+ * Loading state with centered progress indicator
+ */
+@Composable
+private fun LoadingState() {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
+/**
+ * Empty state with message and subtitle
+ */
+@Composable
+private fun EmptyState() {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(Constants.UI.NO_EVENTS_MESSAGE, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                Constants.UI.NO_EVENTS_SUBTITLE,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+            )
+        }
+    }
+}
+
+/**
+ * Error state with error message and retry button
+ */
+@Composable
+private fun ErrorState(message: String, onRetry: () -> Unit) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = onRetry) {
+                Text(Constants.UI.RETRY_BUTTON)
+            }
+        }
+    }
+}
+
+/**
+ * Scrollable list of events
+ */
+@Composable
+private fun EventsList(
+    listState: LazyListState,
+    visibleEvents: List<GitHubEvent>,
+    onEventClick: (GitHubEvent) -> Unit
+) {
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 88.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(visibleEvents, key = { it.id }) { event ->
+            EventCard(event = event, onClick = { onEventClick(event) })
+        }
+    }
+}
+
+/**
+ * Refreshing indicator overlay
+ */
+@Composable
+private fun RefreshingIndicator() {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(top = 80.dp),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+/**
+ * Scroll to top floating action button
+ */
+@Composable
+private fun ScrollToTopButton(
+    shouldShow: Boolean,
+    onClick: () -> Unit
+) {
+    if (shouldShow) {
+        FloatingActionButton(
+            onClick = onClick,
+            modifier = Modifier
+                .align(Alignment.End)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = Constants.UI.SCROLL_TO_TOP_DESCRIPTION)
+        }
+    }
+}
+
+/**
+ * Individual event card with avatar, user info, and event type
+ */
 @Composable
 private fun EventCard(event: GitHubEvent, onClick: () -> Unit) {
     Column(
@@ -199,77 +347,82 @@ private fun EventCard(event: GitHubEvent, onClick: () -> Unit) {
             shape = MaterialTheme.shapes.medium,
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
         ) {
-            ListItem(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-                leadingContent = {
-                    Image(
-                        painter = rememberAsyncImagePainter(event.actor.avatarUrl),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(MaterialTheme.shapes.small)
-                    )
-                },
-                headlineContent = {
-                    Text(
-                        text = event.actor.login,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                supportingContent = {
-                    Text(
-                        text = event.repo.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                trailingContent = {
-                    AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
-                }
-            )
+            EventCardContent(event = event)
         }
     }
 }
 
-private fun formatRelativeTime(isoUtc: String): String {
-    return try {
-        val then = Instant.parse(isoUtc)
-        val now = Instant.now()
-        val seconds = Duration.between(then, now).seconds.coerceAtLeast(0)
-        when {
-            seconds < 60 -> "${seconds}s ago"
-            seconds < 60 * 60 -> "${seconds / 60}m ago"
-            seconds < 60 * 60 * 24 -> "${seconds / 3600}h ago"
-            else -> "${seconds / 86400}d ago"
-        }
-    } catch (_: Exception) {
-        isoUtc
-    }
-}
-
+/**
+ * Content of the event card with ListItem
+ */
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(Constants.UI.NO_EVENTS_MESSAGE, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(4.dp))
-        Text(Constants.UI.NO_EVENTS_SUBTITLE, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
-    }
-}
-
-@Composable
-private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = onRetry) {
-            Text(Constants.UI.RETRY_BUTTON)
+private fun EventCardContent(event: GitHubEvent) {
+    ListItem(
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+        leadingContent = {
+            EventAvatar(avatarUrl = event.actor.avatarUrl)
+        },
+        headlineContent = {
+            EventTitle(username = event.actor.login)
+        },
+        supportingContent = {
+            EventSubtitle(repoName = event.repo.name)
+        },
+        trailingContent = {
+            EventTypeChip(eventType = event.type)
         }
-    }
+    )
 }
 
-private enum class EventFilterType { All, Push, PR, Issues, Watch }
+/**
+ * Event avatar image with circular clipping
+ */
+@Composable
+private fun EventAvatar(avatarUrl: String) {
+    Image(
+        painter = rememberAsyncImagePainter(avatarUrl),
+        contentDescription = null,
+        modifier = Modifier
+            .size(48.dp)
+            .clip(MaterialTheme.shapes.small)
+    )
+}
+
+/**
+ * Event title with username
+ */
+@Composable
+private fun EventTitle(username: String) {
+    Text(
+        text = username,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
+}
+
+/**
+ * Event subtitle with repository name
+ */
+@Composable
+private fun EventSubtitle(repoName: String) {
+    Text(
+        text = repoName,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis
+    )
+}
+
+/**
+ * Event type chip with consistent styling
+ */
+@Composable
+private fun EventTypeChip(eventType: String) {
+    AssistChip(
+        onClick = {},
+        label = { Text(EventUtils.formatEventType(eventType)) }
+    )
+}
