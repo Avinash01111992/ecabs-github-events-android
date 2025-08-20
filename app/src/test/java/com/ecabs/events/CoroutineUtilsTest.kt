@@ -2,8 +2,7 @@ package com.ecabs.events
 
 import com.ecabs.events.util.CoroutineUtils
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.toList
+
 import kotlinx.coroutines.test.*
 import org.junit.Test
 import org.junit.Assert.*
@@ -12,35 +11,7 @@ import kotlin.test.assertFailsWith
 @OptIn(ExperimentalCoroutinesApi::class)
 class CoroutineUtilsTest {
 
-    @Test
-    fun `debounceFlow should delay emissions`() = runTest {
-        val flow = flow {
-            emit(1)
-            emit(2)
-            emit(3)
-        }
-        
-        val debouncedFlow = flow.debounceFlow(100L)
-        val results = debouncedFlow.toList()
-        
-        assertEquals(1, results.size)
-        assertEquals(3, results.first())
-    }
 
-    @Test
-    fun `throttleFlow should limit emission rate`() = runTest {
-        val flow = flow {
-            repeat(5) {
-                emit(it)
-                delay(50L)
-            }
-        }
-        
-        val throttledFlow = flow.throttleFlow(100L)
-        val results = throttledFlow.toList()
-        
-        assertTrue(results.size <= 3) // Should throttle emissions
-    }
 
     @Test
     fun `launchDebounced should delay execution`() = runTest {

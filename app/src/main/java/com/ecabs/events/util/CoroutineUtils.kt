@@ -3,36 +3,12 @@ package com.ecabs.events.util
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
 /**
  * Utility class for advanced coroutine operations
  */
 object CoroutineUtils {
-
-    /**
-     * Debounces a flow with the specified timeout
-     * 
-     * @param timeoutMillis Debounce timeout in milliseconds
-     * @return Debounced flow
-     */
-    fun <T> Flow<T>.debounceFlow(timeoutMillis: Long): Flow<T> {
-        return this.debounce(timeoutMillis)
-    }
-
-    /**
-     * Throttles a flow with the specified timeout
-     * Note: throttle operator is not available in coroutines 1.8.1
-     * 
-     * @param timeoutMillis Throttle timeout in milliseconds
-     * @return Throttled flow
-     */
-    fun <T> Flow<T>.throttleFlow(timeoutMillis: Long): Flow<T> {
-        // Simple implementation without throttle operator
-        return this
-    }
 
     /**
      * Launches a coroutine with debounced execution
