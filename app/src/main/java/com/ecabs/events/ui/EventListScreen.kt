@@ -36,15 +36,38 @@ fun EventsScreen(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedFilter by remember { mutableStateOf(EventFilterType.All) }
+
+    val visibleEvents by remember(events, searchQuery, selectedFilter) {
+        derivedStateOf {
+            events.filter { event ->
+                val matchesType = when (selectedFilter) {
+                    EventFilterType.All -> true
+                    EventFilterType.Push -> event.type == "PushEvent"
+                    EventFilterType.PR -> event.type == "PullRequestEvent"
+                    EventFilterType.Issues -> event.type == "IssuesEvent"
+                }
+                val q = searchQuery.trim().lowercase()
+                val matchesQuery = q.isBlank() ||
+                    event.actor.login.lowercase().contains(q) ||
+                    event.repo.name.lowercase().contains(q) ||
+                    event.type.lowercase().contains(q)
+                matchesType && matchesQuery
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("GitHub Events", style = MaterialTheme.typography.titleLarge) },
+            TopAppBar(
+                title = { Text("GitHub Events") },
                 actions = {
-                    AssistChip(onClick = {}, label = {
-                        Text("Next: ${'$'}{kotlin.math.max(10, nextPoll)}s")
-                    })
-                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = "Next: ${kotlin.math.max(10, nextPoll)}s",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
                 }
             )
         },
@@ -57,12 +80,17 @@ fun EventsScreen(
         }
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            SearchAndFilters()
+            SearchAndFilters(
+                searchQuery = searchQuery,
+                onSearchChange = { searchQuery = it },
+                selected = selectedFilter,
+                onSelect = { selectedFilter = it }
+            )
             Box(Modifier.fillMaxSize()) {
-                if (events.isEmpty() && refreshing) {
+                if (visibleEvents.isEmpty() && refreshing) {
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 }
-                if (events.isEmpty() && !refreshing) {
+                if (visibleEvents.isEmpty() && !refreshing) {
                     EmptyState(modifier = Modifier.align(Alignment.Center))
                 }
                 LazyColumn(
@@ -70,7 +98,7 @@ fun EventsScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 88.dp)
                 ) {
-                    items(events, key = { it.id }) { event ->
+                    items(visibleEvents, key = { it.id }) { event ->
                         EventCard(event = event, onClick = { onEventClick(event) })
                     }
                 }
@@ -80,11 +108,16 @@ fun EventsScreen(
 }
 
 @Composable
-private fun SearchAndFilters() {
+private fun SearchAndFilters(
+    searchQuery: String,
+    onSearchChange: (String) -> Unit,
+    selected: EventFilterType,
+    onSelect: (EventFilterType) -> Unit
+) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = searchQuery,
+            onValueChange = onSearchChange,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
@@ -92,10 +125,10 @@ private fun SearchAndFilters() {
         )
         Spacer(Modifier.height(8.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = true, onClick = {}, label = { Text("All") })
-            FilterChip(selected = false, onClick = {}, label = { Text("Push") })
-            FilterChip(selected = false, onClick = {}, label = { Text("PR") })
-            FilterChip(selected = false, onClick = {}, label = { Text("Issues") })
+            FilterChip(selected = selected == EventFilterType.All, onClick = { onSelect(EventFilterType.All) }, label = { Text("All") })
+            FilterChip(selected = selected == EventFilterType.Push, onClick = { onSelect(EventFilterType.Push) }, label = { Text("Push") })
+            FilterChip(selected = selected == EventFilterType.PR, onClick = { onSelect(EventFilterType.PR) }, label = { Text("PR") })
+            FilterChip(selected = selected == EventFilterType.Issues, onClick = { onSelect(EventFilterType.Issues) }, label = { Text("Issues") })
         }
         Spacer(Modifier.height(8.dp))
     }
@@ -140,3 +173,5 @@ private fun EmptyState(modifier: Modifier = Modifier) {
         Text("Try again in a few seconds.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
     }
 }
+
+private enum class EventFilterType { All, Push, PR, Issues }
