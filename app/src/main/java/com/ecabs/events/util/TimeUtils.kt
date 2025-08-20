@@ -30,19 +30,4 @@ object TimeUtils {
             isoUtc
         }
     }
-    
-    /**
-     * Formats duration in seconds to human-readable format
-     * 
-     * @param seconds Duration in seconds
-     * @return Formatted duration string
-     */
-    fun formatDuration(seconds: Long): String {
-        return when {
-            seconds < 60 -> "${seconds}s"
-            seconds < 60 * 60 -> "${seconds / 60}m"
-            seconds < 60 * 60 * 24 -> "${seconds / 3600}h"
-            else -> "${seconds / 86400}d"
-        }
-    }
 }
