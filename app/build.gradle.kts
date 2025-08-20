@@ -48,6 +48,10 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += listOf(
+            "-Xsuppress-version-warnings",
+            "-Xopt-in=kotlin.RequiresOptIn"
+        )
     }
     packaging {
         resources {
@@ -64,6 +68,9 @@ kapt {
         arg("dagger.hilt.android.internal.disableAndroidSuperclassValidation", "enabled")
         arg("dagger.hilt.android.internal.projectType", "android")
         arg("dagger.hilt.internal.useAggregatingRootProcessor", "enabled")
+    }
+    javacOptions {
+        option("-Xlint:none")
     }
 }
 
