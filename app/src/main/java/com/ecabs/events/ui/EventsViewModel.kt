@@ -28,6 +28,9 @@ class EventsViewModel @Inject constructor(
     private val _nextPoll = MutableStateFlow(repo.pollInterval())
     val nextPoll: StateFlow<Int> = _nextPoll.asStateFlow()
 
+    private val _countdown = MutableStateFlow(repo.pollInterval())
+    val countdown: StateFlow<Int> = _countdown.asStateFlow()
+
     private var pollJob: Job? = null
 
     init {
@@ -50,7 +53,10 @@ class EventsViewModel @Inject constructor(
                 }
                 _isRefreshing.value = false
                 val sleep = kotlin.math.max(10, _nextPoll.value)
-                delay(sleep * 1000L)
+                for (remaining in sleep downTo 0) {
+                    _countdown.value = remaining
+                    delay(1000L)
+                }
             }
         }
     }

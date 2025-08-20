@@ -32,6 +32,7 @@ fun EventsScreen(
     val events by vm.events.collectAsState()
     val refreshing by vm.isRefreshing.collectAsState()
     val nextPoll by vm.nextPoll.collectAsState()
+    val countdown by vm.countdown.collectAsState()
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -64,7 +65,7 @@ fun EventsScreen(
                 title = { Text("GitHub Events") },
                 actions = {
                     Text(
-                        text = "Next: ${kotlin.math.max(10, nextPoll)}s",
+                        text = "Next refresh: ${kotlin.math.max(0, countdown)}s",
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.padding(end = 16.dp)
                     )
