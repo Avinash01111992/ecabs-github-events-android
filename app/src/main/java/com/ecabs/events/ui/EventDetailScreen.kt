@@ -3,7 +3,6 @@ package com.ecabs.events.ui
 import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.Icons.AutoMirrored
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -32,7 +31,7 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
         TopAppBar(
             title = { 
                 Text(
-                    text = Constants.UI.EVENT_DETAILS_TITLE_PREFIX + "${event?.actor?.login ?: ""}" + Constants.UI.EVENT_DETAILS_TITLE_SUFFIX,
+                    text = Constants.UI.EVENT_DETAILS_TITLE_PREFIX + (event?.actor?.login ?: "") + Constants.UI.EVENT_DETAILS_TITLE_SUFFIX,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
