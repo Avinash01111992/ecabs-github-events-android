@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Gradle
+.gradle/
+**/build/
+build/
+
+# Android/Native build
+.externalNativeBuild/
+.cxx/
+.signing/
+
+# Local configuration
+local.properties
+
+# Keystores
+*.jks
+*.keystore
+
+# Artifacts
+*.apk
+*.aab
+
+# Misc
+captures/
+
+
