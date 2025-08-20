@@ -22,6 +22,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.ecabs.events.data.model.GitHubEvent
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,27 +172,43 @@ private fun EventCard(event: GitHubEvent, onClick: () -> Unit) {
                     )
                 },
                 supportingContent = {
-                    Text(
-                        text = event.repo.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                trailingContent = {
-                    Column(horizontalAlignment = Alignment.End) {
-                        AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
-                        Spacer(Modifier.height(6.dp))
+                    Column {
                         Text(
-                            text = event.createdAt,
+                            text = event.repo.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = formatRelativeTime(event.createdAt),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
+                },
+                trailingContent = {
+                    AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
                 }
             )
         }
+    }
+}
+
+private fun formatRelativeTime(isoUtc: String): String {
+    return try {
+        val then = Instant.parse(isoUtc)
+        val now = Instant.now()
+        val seconds = Duration.between(then, now).seconds.coerceAtLeast(0)
+        when {
+            seconds < 60 -> "${seconds}s ago"
+            seconds < 60 * 60 -> "${seconds / 60}m ago"
+            seconds < 60 * 60 * 24 -> "${seconds / 3600}h ago"
+            else -> "${seconds / 86400}d ago"
+        }
+    } catch (_: Exception) {
+        isoUtc
     }
 }
 
