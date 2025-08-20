@@ -48,6 +48,7 @@ fun EventsScreen(
                     EventFilterType.Push -> event.type == "PushEvent"
                     EventFilterType.PR -> event.type == "PullRequestEvent"
                     EventFilterType.Issues -> event.type == "IssuesEvent"
+                    EventFilterType.Watch -> event.type == "WatchEvent"
                 }
                 val q = searchQuery.trim().lowercase()
                 val matchesQuery = q.isBlank() ||
@@ -130,6 +131,7 @@ private fun SearchAndFilters(
             FilterChip(selected = selected == EventFilterType.Push, onClick = { onSelect(EventFilterType.Push) }, label = { Text("Push") })
             FilterChip(selected = selected == EventFilterType.PR, onClick = { onSelect(EventFilterType.PR) }, label = { Text("PR") })
             FilterChip(selected = selected == EventFilterType.Issues, onClick = { onSelect(EventFilterType.Issues) }, label = { Text("Issues") })
+            FilterChip(selected = selected == EventFilterType.Watch, onClick = { onSelect(EventFilterType.Watch) }, label = { Text("Watch") })
         }
         Spacer(Modifier.height(8.dp))
     }
@@ -141,28 +143,48 @@ private fun EventCard(event: GitHubEvent, onClick: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = rememberAsyncImagePainter(event.actor.avatarUrl),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(MaterialTheme.shapes.small)
-            )
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(text = event.actor.login, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(text = event.repo.name, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        ListItem(
+            leadingContent = {
+                Image(
+                    painter = rememberAsyncImagePainter(event.actor.avatarUrl),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(MaterialTheme.shapes.small)
+                )
+            },
+            headlineContent = {
+                Text(
+                    text = event.actor.login,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            supportingContent = {
+                Column {
+                    Text(
+                        text = event.repo.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = event.createdAt,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            },
+            trailingContent = {
+                AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
             }
-            AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
-        }
-        Spacer(Modifier.height(8.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = event.createdAt, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-        }
-        Divider(Modifier.padding(top = 12.dp))
+        )
+        Divider()
     }
 }
 
@@ -175,4 +197,4 @@ private fun EmptyState(modifier: Modifier = Modifier) {
     }
 }
 
-private enum class EventFilterType { All, Push, PR, Issues }
+private enum class EventFilterType { All, Push, PR, Issues, Watch }
