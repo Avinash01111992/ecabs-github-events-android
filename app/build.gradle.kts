@@ -56,6 +56,17 @@ android {
     }
 }
 
+kapt {
+    correctErrorTypes = true
+    useBuildCache = true
+    arguments {
+        arg("dagger.fastInit", "enabled")
+        arg("dagger.hilt.android.internal.disableAndroidSuperclassValidation", "enabled")
+        arg("dagger.hilt.android.internal.projectType", "android")
+        arg("dagger.hilt.internal.useAggregatingRootProcessor", "enabled")
+    }
+}
+
 kotlin {
     jvmToolchain(17)
 }
