@@ -148,22 +148,18 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    private fun handleException(exception: Throwable) {
-        when (exception) {
-            is IOException -> _errorMessage.value = "Network error: ${exception.message}"
-            is HttpException -> _errorMessage.value = "API error: ${exception.message}"
+    private fun handleError(exception: Throwable) {
+        _isRefreshing.value = false
+        
+        val errorMessage = when (exception) {
+            is IOException -> Constants.ErrorMessages.NETWORK_ERROR_PREFIX + (exception.message ?: Constants.ErrorMessages.UNKNOWN_ERROR)
+            is HttpException -> Constants.ErrorMessages.API_ERROR_PREFIX + (exception.message ?: Constants.ErrorMessages.UNKNOWN_ERROR)
             is CancellationException -> return
-            else -> _errorMessage.value = "Unexpected error: ${exception.message}"
+            else -> Constants.ErrorMessages.UNEXPECTED_ERROR_PREFIX + (exception.message ?: Constants.ErrorMessages.UNKNOWN_ERROR)
         }
         
-        _isRefreshing.value = false
-        _uiState.value = EventsUiState.Error(_errorMessage.value ?: "Unknown error")
-    }
-
-    private fun handleError(exception: Exception) {
-        _isRefreshing.value = false
-        _errorMessage.value = exception.message ?: "Unknown error occurred"
-        _uiState.value = EventsUiState.Error(_errorMessage.value ?: "Unknown error")
+        _errorMessage.value = errorMessage
+        _uiState.value = EventsUiState.Error(errorMessage)
     }
 
     fun clearError() {
