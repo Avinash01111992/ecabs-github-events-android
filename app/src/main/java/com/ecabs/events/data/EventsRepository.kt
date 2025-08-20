@@ -6,10 +6,6 @@ import com.ecabs.events.data.remote.GitHubApi
 import com.ecabs.events.util.Constants
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,7 +30,7 @@ class EventsRepository @Inject constructor(
                 return FetchResult(emptyList(), pollIntervalSeconds, notModified = true)
             }
             
-            val body = response.body().orEmpty()
+            val body = response.body() ?: emptyList()
             val filtered = body.filter { TrackedEventType.rawSet.contains(it.type) }
             
             mutex.withLock {
@@ -49,23 +45,7 @@ class EventsRepository @Inject constructor(
         }
     }
 
-    fun fetchEventsAsFlow(): Flow<FetchResult> = flow {
-        emit(fetchNewEvents())
-    }.catch { exception ->
-        throw RepositoryException("Flow error: ${exception.message}", exception)
-    }.map { result ->
-        result
-    }
-
     fun pollInterval(): Int = pollIntervalSeconds
-
-    fun getLastEtag(): String? = lastEtag
-
-    fun resetEtag() {
-        mutex.withLock {
-            lastEtag = null
-        }
-    }
 }
 
 data class FetchResult(
