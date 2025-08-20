@@ -1,8 +1,6 @@
 package com.ecabs.events.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,12 +10,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.ecabs.events.data.model.GitHubEvent
@@ -31,10 +29,10 @@ fun EventsScreen(
     onEventClick: (GitHubEvent) -> Unit,
     vm: EventsViewModel = hiltViewModel()
 ) {
-    val events by vm.events.collectAsState()
+    val uiState by vm.uiState.collectAsState()
     val refreshing by vm.isRefreshing.collectAsState()
-    val nextPoll by vm.nextPoll.collectAsState()
     val countdown by vm.countdown.collectAsState()
+    val errorMessage by vm.errorMessage.collectAsState()
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -42,70 +40,118 @@ fun EventsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(EventFilterType.All) }
 
-    val visibleEvents by remember(events, searchQuery, selectedFilter) {
+    val visibleEvents by remember(uiState, searchQuery, selectedFilter) {
         derivedStateOf {
-            events.filter { event ->
-                val matchesType = when (selectedFilter) {
-                    EventFilterType.All -> true
-                    EventFilterType.Push -> event.type == "PushEvent"
-                    EventFilterType.PR -> event.type == "PullRequestEvent"
-                    EventFilterType.Issues -> event.type == "IssuesEvent"
-                    EventFilterType.Watch -> event.type == "WatchEvent"
+            when (uiState) {
+                is EventsUiState.Success -> {
+                    val events = (uiState as EventsUiState.Success).events
+                    events.filter { event ->
+                        val matchesType = when (selectedFilter) {
+                            EventFilterType.All -> true
+                            EventFilterType.Push -> event.type == "PushEvent"
+                            EventFilterType.PR -> event.type == "PullRequestEvent"
+                            EventFilterType.Issues -> event.type == "IssuesEvent"
+                            EventFilterType.Watch -> event.type == "WatchEvent"
+                        }
+                        val q = searchQuery.trim().lowercase()
+                        val matchesQuery = q.isBlank() ||
+                            event.actor.login.lowercase().contains(q) ||
+                            event.repo.name.lowercase().contains(q) ||
+                            event.type.lowercase().contains(q)
+                        matchesType && matchesQuery
+                    }
                 }
-                val q = searchQuery.trim().lowercase()
-                val matchesQuery = q.isBlank() ||
-                    event.actor.login.lowercase().contains(q) ||
-                    event.repo.name.lowercase().contains(q) ||
-                    event.type.lowercase().contains(q)
-                matchesType && matchesQuery
+                else -> emptyList()
             }
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("GitHub Events") },
-                actions = {
-                    Text(
-                        text = "Next refresh: ${kotlin.math.max(0, countdown)}s",
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                }
-            )
-        },
-        floatingActionButton = {
-            if (listState.firstVisibleItemIndex > 0) {
-                FloatingActionButton(onClick = {
-                    scope.launch { listState.animateScrollToItem(0) }
-                }) { Text("↑") }
-            }
+    val shouldShowScrollToTop by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0
         }
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            SearchAndFilters(
-                searchQuery = searchQuery,
-                onSearchChange = { searchQuery = it },
-                selected = selectedFilter,
-                onSelect = { selectedFilter = it }
-            )
-            Box(Modifier.fillMaxSize()) {
-                if (visibleEvents.isEmpty() && refreshing) {
-                    CircularProgressIndicator(Modifier.align(Alignment.Center))
-                }
-                if (visibleEvents.isEmpty() && !refreshing) {
-                    EmptyState(modifier = Modifier.align(Alignment.Center))
-                }
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 88.dp)
-                ) {
-                    items(visibleEvents, key = { it.id }) { event ->
-                        EventCard(event = event, onClick = { onEventClick(event) })
+    }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+        }
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text("GitHub Events") },
+            actions = {
+                Text(
+                    text = "Next refresh: ${kotlin.math.max(0, countdown)}s",
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+            }
+        )
+
+        SearchAndFilters(
+            searchQuery = searchQuery,
+            onSearchChange = { searchQuery = it },
+            selected = selectedFilter,
+            onSelect = { selectedFilter = it }
+        )
+
+        Box(Modifier.fillMaxSize()) {
+            when (uiState) {
+                is EventsUiState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
+                is EventsUiState.Empty -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        EmptyState()
+                    }
+                }
+                is EventsUiState.Error -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        ErrorState(
+                            message = (uiState as EventsUiState.Error).message,
+                            onRetry = { vm.refreshEvents() }
+                        )
+                    }
+                }
+                is EventsUiState.Success -> {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 88.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(visibleEvents, key = { it.id }) { event ->
+                            EventCard(event = event, onClick = { onEventClick(event) })
+                        }
+                    }
+                }
+            }
+
+            if (refreshing) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(top = 80.dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
+
+        if (shouldShowScrollToTop) {
+            FloatingActionButton(
+                onClick = {
+                    scope.launch { listState.animateScrollToItem(0) }
+                },
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(16.dp)
+            ) {
+                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Scroll to top")
             }
         }
     }
@@ -125,7 +171,7 @@ private fun SearchAndFilters(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            placeholder = { Text("Search events (UI only)") }
+            placeholder = { Text("Search events") }
         )
         Spacer(Modifier.height(8.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -172,21 +218,13 @@ private fun EventCard(event: GitHubEvent, onClick: () -> Unit) {
                     )
                 },
                 supportingContent = {
-                    Column {
-                        Text(
-                            text = event.repo.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = formatRelativeTime(event.createdAt),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
+                    Text(
+                        text = event.repo.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 },
                 trailingContent = {
                     AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
@@ -218,6 +256,17 @@ private fun EmptyState(modifier: Modifier = Modifier) {
         Text("No events yet", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))
         Text("Try again in a few seconds.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+    }
+}
+
+@Composable
+private fun ErrorState(message: String, onRetry: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+        Spacer(Modifier.height(8.dp))
+        Button(onClick = onRetry) {
+            Text("Retry")
+        }
     }
 }
 
