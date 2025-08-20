@@ -142,49 +142,54 @@ private fun EventCard(event: GitHubEvent, onClick: () -> Unit) {
     Column(
         Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
-        ListItem(
-            leadingContent = {
-                Image(
-                    painter = rememberAsyncImagePainter(event.actor.avatarUrl),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(MaterialTheme.shapes.small)
-                )
-            },
-            headlineContent = {
-                Text(
-                    text = event.actor.login,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            supportingContent = {
-                Column {
+        ElevatedCard(
+            onClick = onClick,
+            shape = MaterialTheme.shapes.medium,
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+        ) {
+            ListItem(
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                leadingContent = {
+                    Image(
+                        painter = rememberAsyncImagePainter(event.actor.avatarUrl),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(MaterialTheme.shapes.small)
+                    )
+                },
+                headlineContent = {
                     Text(
-                        text = event.repo.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                        maxLines = 2,
+                        text = event.actor.login,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = event.createdAt,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
+                },
+                supportingContent = {
+                    Column {
+                        Text(
+                            text = event.repo.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = event.createdAt,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                },
+                trailingContent = {
+                    AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
                 }
-            },
-            trailingContent = {
-                AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
-            }
-        )
-        Divider()
+            )
+        }
     }
 }
 
