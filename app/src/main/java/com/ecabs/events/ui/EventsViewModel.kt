@@ -37,7 +37,7 @@ class EventsViewModel @Inject constructor(
     private val _countdown = MutableStateFlow(repo.pollInterval())
     val countdown: StateFlow<Int> = _countdown.asStateFlow()
 
-    private val _uiState = MutableStateFlow<EventsUiState>(EventsUiState.Loading)
+    private val _uiState = MutableStateFlow<EventsUiState>(EventsUiState.Empty)
     val uiState: StateFlow<EventsUiState> = _uiState.asStateFlow()
 
     private val _errorMessage = MutableStateFlow<String?>(null)
@@ -101,9 +101,13 @@ class EventsViewModel @Inject constructor(
 
     private suspend fun countdownTimer() {
         val sleep = maxOf(10, _nextPoll.value)
-        for (remaining in sleep downTo 0) {
+        flow {
+            repeat(sleep + 1) { remaining ->
+                emit(sleep - remaining)
+                delay(1000L)
+            }
+        }.collect { remaining ->
             _countdown.value = remaining
-            delay(1000L)
         }
     }
 
