@@ -6,11 +6,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,7 +38,6 @@ import kotlinx.coroutines.launch
  * @param onEventClick Callback when an event is selected
  * @param vm ViewModel for managing event data and state
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventsScreen(
     onEventClick: (GitHubEvent) -> Unit,
@@ -80,25 +77,29 @@ fun EventsScreen(
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
-        EventsTopAppBar(countdown = countdown)
-        SearchAndFiltersSection(
-            searchQuery = searchQuery,
-            onSearchChange = { searchQuery = it },
-            selected = selectedFilter,
-            onSelect = { selectedFilter = it }
-        )
-        EventsContent(
-            uiState = uiState,
-            listState = listState,
-            visibleEvents = visibleEvents,
-            refreshing = refreshing,
-            onEventClick = onEventClick,
-            onRetry = { vm.refreshEvents() }
-        )
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
+            EventsTopAppBar(countdown = countdown)
+            SearchAndFiltersSection(
+                searchQuery = searchQuery,
+                onSearchChange = { searchQuery = it },
+                selected = selectedFilter,
+                onSelect = { selectedFilter = it }
+            )
+            EventsContent(
+                uiState = uiState,
+                listState = listState,
+                visibleEvents = visibleEvents,
+                refreshing = refreshing,
+                onEventClick = onEventClick,
+                onRetry = { vm.refreshEvents() }
+            )
+        }
+        
         ScrollToTopButton(
             shouldShow = shouldShowScrollToTop,
-            onClick = { scope.launch { listState.animateScrollToItem(0) } }
+            onClick = { scope.launch { listState.animateScrollToItem(0) } },
+            modifier = Modifier.align(Alignment.BottomEnd)
         )
     }
 }
@@ -106,6 +107,7 @@ fun EventsScreen(
 /**
  * Top app bar with title and countdown timer
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventsTopAppBar(countdown: Int) {
     TopAppBar(
@@ -216,7 +218,7 @@ private fun EventsContent(
             is EventsUiState.Loading -> LoadingState()
             is EventsUiState.Empty -> EmptyState()
             is EventsUiState.Error -> ErrorState(
-                message = (uiState as EventsUiState.Error).message,
+                message = uiState.message,
                 onRetry = onRetry
             )
             is EventsUiState.Success -> EventsList(
@@ -318,14 +320,13 @@ private fun RefreshingIndicator() {
 @Composable
 private fun ScrollToTopButton(
     shouldShow: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     if (shouldShow) {
         FloatingActionButton(
             onClick = onClick,
-            modifier = Modifier
-                .align(Alignment.End)
-                .padding(16.dp)
+            modifier = modifier.padding(16.dp)
         ) {
             Icon(Icons.Filled.KeyboardArrowUp, contentDescription = Constants.UI.SCROLL_TO_TOP_DESCRIPTION)
         }

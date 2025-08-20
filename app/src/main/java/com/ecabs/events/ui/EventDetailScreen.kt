@@ -1,6 +1,5 @@
 package com.ecabs.events.ui
 
-import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
@@ -18,10 +17,8 @@ import com.ecabs.events.util.Constants
 import com.ecabs.events.util.TimeUtils
 import com.ecabs.events.util.EventUtils
 import com.ecabs.events.util.IntentUtils
-import androidx.core.net.toUri
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 
 /**
  * EventDetailsScreen displays comprehensive information about a GitHub event
@@ -35,34 +32,16 @@ import androidx.compose.foundation.lazy.items
  * @param event The GitHub event to display, null shows empty state
  * @param onBack Navigation callback to return to previous screen
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
     val context = LocalContext.current
     val repoWebUrl = remember(event) { event?.repo?.name?.let { EventUtils.buildRepoUrl(it) } }
 
     Column(Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { 
-                Text(
-                    text = Constants.UI.EVENT_DETAILS_TITLE_PREFIX + (event?.actor?.login ?: "") + Constants.UI.EVENT_DETAILS_TITLE_SUFFIX,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = onBack) { 
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Constants.UI.BACK_BUTTON_DESCRIPTION) 
-                }
-            },
-            actions = {
-                if (repoWebUrl != null) {
-                    IconButton(onClick = { IntentUtils.shareText(context, repoWebUrl) }) {
-                        Icon(Icons.Filled.Share, contentDescription = Constants.UI.SHARE_REPO_DESCRIPTION)
-                    }
-                }
-            }
+        EventDetailTopAppBar(
+            event = event,
+            onBack = onBack,
+            onShare = { repoWebUrl?.let { IntentUtils.shareText(context, it) } }
         )
 
         if (event == null) {
@@ -155,6 +134,38 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
             }
         }
     }
+}
+
+/**
+ * Top app bar for event detail screen
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EventDetailTopAppBar(
+    event: GitHubEvent?,
+    onBack: () -> Unit,
+    onShare: () -> Unit
+) {
+    TopAppBar(
+        title = { 
+            Text(
+                text = Constants.UI.EVENT_DETAILS_TITLE_PREFIX + (event?.actor?.login ?: "") + Constants.UI.EVENT_DETAILS_TITLE_SUFFIX,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) { 
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Constants.UI.BACK_BUTTON_DESCRIPTION) 
+            }
+        },
+        actions = {
+            IconButton(onClick = onShare) {
+                Icon(Icons.Filled.Share, contentDescription = Constants.UI.SHARE_REPO_DESCRIPTION)
+            }
+        }
+    )
 }
 
 /**
