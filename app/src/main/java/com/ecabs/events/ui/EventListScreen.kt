@@ -227,22 +227,18 @@ private fun EventsContent(
     onRetry: () -> Unit
 ) {
     Box(Modifier.fillMaxSize()) {
-        when (uiState) {
-            is EventsUiState.Loading -> LoadingState()
-            is EventsUiState.Empty -> EmptyState()
-            is EventsUiState.Error -> ErrorState(
+        when {
+            refreshing -> LoadingState()
+            uiState is EventsUiState.Error -> ErrorState(
                 message = uiState.message,
                 onRetry = onRetry
             )
-            is EventsUiState.Success -> EventsList(
+            visibleEvents.isEmpty() -> EmptyState()
+            else -> EventsList(
                 listState = listState,
                 visibleEvents = visibleEvents,
                 onEventClick = onEventClick
             )
-        }
-
-        if (refreshing) {
-            RefreshingIndicator()
         }
     }
 }
@@ -312,20 +308,7 @@ private fun EventsList(
     }
 }
 
-/**
- * Refreshing indicator overlay
- */
-@Composable
-private fun RefreshingIndicator() {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .padding(top = 80.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        CircularProgressIndicator()
-    }
-}
+
 
 /**
  * Scroll to top floating action button
