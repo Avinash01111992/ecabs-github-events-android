@@ -170,23 +170,24 @@ private fun EventCard(event: GitHubEvent, onClick: () -> Unit) {
                     )
                 },
                 supportingContent = {
-                    Column {
-                        Text(
-                            text = event.repo.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                    Text(
+                        text = event.repo.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                trailingContent = {
+                    Column(horizontalAlignment = Alignment.End) {
+                        AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
+                        Spacer(Modifier.height(6.dp))
                         Text(
                             text = event.createdAt,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
-                },
-                trailingContent = {
-                    AssistChip(onClick = {}, label = { Text(text = event.type.removeSuffix("Event")) })
                 }
             )
         }
