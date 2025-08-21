@@ -10,9 +10,9 @@ A **production-ready, enterprise-grade** Android application built with modern A
 *Beautiful Material 3 design with search, filters, and real-time event updates*
 
 ### **Event Details Screens**
-| Issues Event | Push Event | Pull Request Event | Watch Event |
-|--------------|------------|-------------------|-------------|
-| ![Issues Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/issues-event.png) | ![Push Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/push-event.png) | ![PR Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/pr-event.png) | ![Watch Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/watch-event.png) |
+| Issues Event | Push Event | Pull Request Event | Create Event | Watch Event |
+|--------------|------------|-------------------|--------------|-------------|
+| ![Issues Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/issues-event.png) | ![Push Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/push-event.png) | ![PR Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/pr-event.png) | ![Create Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/create-event.png) | ![Watch Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/watch-event.png) |
 
 *Comprehensive event details with organized information cards and action buttons*
 
@@ -142,7 +142,7 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 - **PushEvent**: Code pushes to repositories
 - **PullRequestEvent**: Pull request activities
 - **IssuesEvent**: Issue creation and updates
-- **ForkEvent**: Repository forking
+- **CreateEvent**: New branches, tags, or repositories
 - **WatchEvent**: Repository watching
 
 ## 🧪 **Testing**
@@ -165,7 +165,7 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 
 **Features:**
 - **Search Bar**: Real-time search with debouncing
-- **Filter Chips**: Event type filtering (All, Push, PR, Issues, Watch)
+- **Filter Chips**: Event type filtering (All, Push, PR, Issues, Create, Watch)
 - **Event Cards**: Beautiful Material 3 cards with avatars and repository info
 - **Pull-to-Refresh**: Smooth refresh with loading indicator
 - **Scroll-to-Top**: Floating action button for easy navigation

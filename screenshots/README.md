@@ -23,12 +23,18 @@ This folder contains screenshots of the GitHub Events Android application for th
    - Branch information
    - SHA hashes
 
-4. **`pr-event.png`** - Pull request event details screen showing:
+4. **`create-event.png`** - Create event details screen showing:
+   - Create event information
+   - Reference type (branch, tag, repository)
+   - Branch/tag details
+   - Repository information
+
+5. **`pr-event.png`** - Pull request event details screen showing:
    - PR event information
    - Action details
    - Repository information
 
-5. **`watch-event.png`** - Watch event details screen showing:
+6. **`watch-event.png`** - Watch event details screen showing:
    - Watch event information
    - Action details
    - User information

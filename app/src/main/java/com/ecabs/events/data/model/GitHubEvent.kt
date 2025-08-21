@@ -41,7 +41,11 @@ data class Payload(
     @Json(name = "ref") val ref: String?,
     @Json(name = "head") val head: String?,
     @Json(name = "before") val before: String?,
-    @Json(name = "commits") val commits: List<Commit>?
+    @Json(name = "commits") val commits: List<Commit>?,
+    @Json(name = "ref_type") val refType: String?,
+    @Json(name = "master_branch") val masterBranch: String?,
+    @Json(name = "description") val description: String?,
+    @Json(name = "pusher_type") val pusherType: String?
 )
 
 @JsonClass(generateAdapter = true)
@@ -63,7 +67,7 @@ enum class TrackedEventType(val raw: String) {
     Push("PushEvent"),
     PullRequest("PullRequestEvent"),
     Issues("IssuesEvent"),
-    Fork("ForkEvent"),
+    Create("CreateEvent"),
     Watch("WatchEvent");
     
     companion object {

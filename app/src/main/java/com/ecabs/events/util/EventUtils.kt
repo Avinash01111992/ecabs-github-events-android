@@ -77,6 +77,7 @@ object EventUtils {
                 EventFilterType.Push -> event.type == TrackedEventType.Push.raw
                 EventFilterType.PR -> event.type == TrackedEventType.PullRequest.raw
                 EventFilterType.Issues -> event.type == TrackedEventType.Issues.raw
+                EventFilterType.Create -> event.type == TrackedEventType.Create.raw
                 EventFilterType.Watch -> event.type == TrackedEventType.Watch.raw
             }
             
@@ -94,4 +95,4 @@ object EventUtils {
 /**
  * Event filter types for UI
  */
-enum class EventFilterType { All, Push, PR, Issues, Watch }
+enum class EventFilterType { All, Push, PR, Issues, Create, Watch }
