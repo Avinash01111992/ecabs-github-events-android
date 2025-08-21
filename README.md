@@ -2,6 +2,20 @@
 
 A **production-ready, enterprise-grade** Android application built with modern Android development practices, showcasing advanced UI/UX patterns, robust architecture, and performance optimizations.
 
+## 📱 **App Screenshots**
+
+### **Main Events List Screen**
+![GitHub Events List](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/list-screen.png)
+
+*Beautiful Material 3 design with search, filters, and real-time event updates*
+
+### **Event Details Screens**
+| Issues Event | Push Event | Pull Request Event | Watch Event |
+|--------------|------------|-------------------|-------------|
+| ![Issues Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/issues-event.png) | ![Push Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/push-event.png) | ![PR Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/pr-event.png) | ![Watch Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/watch-event.png) |
+
+*Comprehensive event details with organized information cards and action buttons*
+
 ## 🎯 **Code Challenge Requirements (All Completed ✅)**
 
 ### **Core Technical Stack:**
@@ -147,18 +161,33 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 ## 🎨 **UI/UX Features**
 
 ### **List Screen:**
+![GitHub Events List Screen](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/list-screen.png)
+
+**Features:**
 - **Search Bar**: Real-time search with debouncing
-- **Filter Chips**: Event type filtering
-- **Event Cards**: Beautiful Material 3 cards with avatars
+- **Filter Chips**: Event type filtering (All, Push, PR, Issues, Watch)
+- **Event Cards**: Beautiful Material 3 cards with avatars and repository info
 - **Pull-to-Refresh**: Smooth refresh with loading indicator
 - **Scroll-to-Top**: Floating action button for easy navigation
+- **Real-time Countdown**: Shows next refresh time (e.g., "Next refresh: 37s")
 
 ### **Detail Screen:**
-- **Event Information**: Comprehensive event details
-- **User Profiles**: Actor information with profile links
-- **Repository Details**: Repository information and links
-- **Action Buttons**: Share and open repository functionality
+![Event Details Screen](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/detail-screen.png)
+
+**Features:**
+- **Event Information**: Comprehensive event details with ID, type, and timestamps
+- **Actor Information**: User profile details with IDs and usernames
+- **Event Details**: Specific action information (e.g., "opened", "started")
+- **Action Buttons**: View Profile and Open Repository functionality
 - **Responsive Layout**: Adapts to different content lengths
+- **Material 3 Cards**: Clean, organized information presentation
+
+### **Multiple Event Types Showcased:**
+- **Issues Event**: Event creation and management
+- **Push Event**: Code commits and repository updates
+- **Pull Request Event**: PR activities and workflows
+- **Watch Event**: Repository watching and starring
+- **Dynamic Content**: Each event type shows relevant information
 
 ## 🔧 **Technical Implementation Details**
 
@@ -230,3 +259,27 @@ This project is created for the eCabs Technologies Android Engineer code challen
 **This application goes far beyond the basic requirements, showcasing enterprise-level Android development skills, modern architecture patterns, and exceptional user experience design.** 🎉
 
 *Built with ❤️ using modern Android development practices*
+
+---
+
+## 📸 **Adding Screenshots**
+
+To make this README complete with actual screenshots:
+
+1. **Create a screenshots folder** in your repository:
+   ```bash
+   mkdir -p screenshots
+   ```
+
+2. **Add your screenshots** with descriptive names:
+   - `list-screen.png` - Main events list
+   - `issues-event.png` - Issues event details
+   - `push-event.png` - Push event details
+   - `pr-event.png` - Pull request event details
+   - `watch-event.png` - Watch event details
+
+3. **Update the image paths** in this README to point to your actual screenshots
+
+4. **Commit and push** the screenshots to make the README fully visual!
+
+*Note: The current image paths are placeholders. Replace them with your actual screenshot URLs once uploaded.*
