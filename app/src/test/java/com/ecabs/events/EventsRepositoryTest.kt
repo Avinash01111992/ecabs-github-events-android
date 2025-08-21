@@ -27,8 +27,8 @@ class EventsRepositoryTest {
                 .setHeader(Constants.Headers.ETAG, "abc")
                 .setHeader(Constants.Headers.POLL_INTERVAL, "60")
                 .setBody("""[
-                    {"id":"1","type":"${TrackedEventType.Push.raw}","actor":{"login":"u1","avatar_url":""},"repo":{"name":"r1","url":""},"created_at":"2024-01-01T00:00:00Z"},
-                    {"id":"2","type":"UnknownEvent","actor":{"login":"u2","avatar_url":""},"repo":{"name":"r2","url":""},"created_at":"2024-01-01T00:00:00Z"}
+                    {"id":"1","type":"${TrackedEventType.Push.raw}","actor":{"id":1,"login":"u1","display_login":"u1","gravatar_id":"","url":"https://api.github.com/users/u1","avatar_url":"https://avatars.githubusercontent.com/u/1?v=4"},"repo":{"id":1,"name":"r1","url":"https://api.github.com/repos/r1"},"payload":null,"public":true,"created_at":"2024-01-01T00:00:00Z"},
+                    {"id":"2","type":"UnknownEvent","actor":{"id":2,"login":"u2","display_login":"u2","gravatar_id":"","url":"https://api.github.com/users/u2","avatar_url":"https://avatars.githubusercontent.com/u/2?v=4"},"repo":{"id":2,"name":"r2","url":"https://api.github.com/repos/r2"},"payload":null,"public":true,"created_at":"2024-01-01T00:00:00Z"}
                 ]""")
         )
         server.start()
