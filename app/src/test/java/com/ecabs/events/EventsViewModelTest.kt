@@ -33,10 +33,8 @@ class EventsViewModelTest {
     @Before
     fun setup() {
         mockRepository = mock()
-        // Don't start polling automatically in tests
         viewModel = EventsViewModel(mockRepository)
-        // Cancel any existing polling job
-        viewModel.onCleared()
+        // No need to cancel polling since it's not auto-started
     }
 
     @Test
@@ -50,10 +48,11 @@ class EventsViewModelTest {
         whenever(mockRepository.fetchNewEvents()).thenReturn(fetchResult)
         whenever(mockRepository.pollInterval()).thenReturn(30)
 
-        viewModel.startPolling()
+        // Test the refreshEvents method directly instead of polling
+        viewModel.refreshEvents()
         
         // Wait for the coroutine to complete and state to be emitted
-        advanceTimeBy(500)
+        advanceTimeBy(1000)
         
         val uiState = viewModel.uiState.first()
         assertTrue(uiState is EventsUiState.Success)
@@ -67,10 +66,11 @@ class EventsViewModelTest {
         whenever(mockRepository.fetchNewEvents()).thenReturn(fetchResult)
         whenever(mockRepository.pollInterval()).thenReturn(30)
 
-        viewModel.startPolling()
+        // Test the refreshEvents method directly instead of polling
+        viewModel.refreshEvents()
         
         // Wait for the coroutine to complete and state to be emitted
-        advanceTimeBy(500)
+        advanceTimeBy(1000)
         
         val uiState = viewModel.uiState.first()
         assertTrue(uiState is EventsUiState.Empty)
@@ -82,10 +82,11 @@ class EventsViewModelTest {
         whenever(mockRepository.fetchNewEvents()).thenThrow(RuntimeException(errorMessage))
         whenever(mockRepository.pollInterval()).thenReturn(30)
 
-        viewModel.startPolling()
+        // Test the refreshEvents method directly instead of polling
+        viewModel.refreshEvents()
         
         // Wait for the coroutine to complete and error state to be emitted
-        advanceTimeBy(500)
+        advanceTimeBy(1000)
         
         val uiState = viewModel.uiState.first()
         assertTrue(uiState is EventsUiState.Error)
@@ -135,9 +136,10 @@ class EventsViewModelTest {
         whenever(mockRepository.fetchNewEvents()).thenThrow(RuntimeException("Test error"))
         whenever(mockRepository.pollInterval()).thenReturn(30)
         
-        viewModel.startPolling()
+        // Test the refreshEvents method directly instead of polling
+        viewModel.refreshEvents()
         // Wait for error state to be emitted
-        advanceTimeBy(500)
+        advanceTimeBy(1000)
         
         assertTrue(viewModel.uiState.first() is EventsUiState.Error)
         

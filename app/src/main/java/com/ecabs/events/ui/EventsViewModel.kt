@@ -47,9 +47,7 @@ class EventsViewModel @Inject constructor(
         handleError(exception)
     }
 
-    init {
-        startPolling()
-    }
+    // Polling is started manually by the app, not automatically in ViewModel
 
     fun startPolling() {
         pollJob?.cancel()
