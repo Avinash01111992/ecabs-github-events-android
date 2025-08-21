@@ -49,7 +49,6 @@ class EventsViewModelTest {
 
         viewModel.startPolling()
         
-        // Wait for the coroutine to complete
         advanceTimeBy(100)
         
         val uiState = viewModel.uiState.value
@@ -65,7 +64,6 @@ class EventsViewModelTest {
 
         viewModel.startPolling()
         
-        // Wait for the coroutine to complete
         advanceTimeBy(100)
         
         val uiState = viewModel.uiState.value
@@ -79,7 +77,6 @@ class EventsViewModelTest {
 
         viewModel.startPolling()
         
-        // Wait for the coroutine to complete
         advanceTimeBy(100)
         
         val uiState = viewModel.uiState.value
@@ -96,7 +93,6 @@ class EventsViewModelTest {
 
         viewModel.refreshEvents()
         
-        // Wait for the coroutine to complete
         advanceTimeBy(100)
         
         val uiState = viewModel.uiState.value
@@ -108,19 +104,15 @@ class EventsViewModelTest {
     fun `should clear error when clearError is called`() = runTest {
         whenever(mockRepository.fetchNewEvents()).thenThrow(RuntimeException("Test error"))
         
-        // First start polling to create error state
         viewModel.startPolling()
         advanceTimeBy(100)
         
         assertTrue(viewModel.uiState.value is EventsUiState.Error)
         
-        // Clear the error
         viewModel.clearError()
         
-        // Check that error message is cleared
         assertNull(viewModel.errorMessage.value)
         
-        // Check that UI state is updated to Empty (since no events were loaded)
         val uiState = viewModel.uiState.value
         assertTrue(uiState is EventsUiState.Empty)
     }
@@ -131,14 +123,11 @@ class EventsViewModelTest {
 
         viewModel.startPolling()
         
-        // Wait for initial countdown to start
         advanceTimeBy(100)
         
-        // Check that countdown is working (should be less than initial value)
         val initialCountdown = viewModel.countdown.value
         assertTrue(initialCountdown <= 5)
         
-        // Advance time and check countdown decreases
         advanceTimeBy(1000)
         val nextCountdown = viewModel.countdown.value
         assertTrue(nextCountdown < initialCountdown || nextCountdown == 0)
@@ -151,10 +140,8 @@ class EventsViewModelTest {
         
         whenever(mockRepository.fetchNewEvents()).thenReturn(fetchResult)
 
-        // Start polling manually
         viewModel.startPolling()
         
-        // Wait for the coroutine to complete
         advanceTimeBy(100)
         
         val uiState = viewModel.uiState.value

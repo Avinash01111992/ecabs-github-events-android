@@ -32,7 +32,7 @@ import kotlinx.coroutines.delay
  * Features:
  * - Real-time event list with pull-to-refresh
  * - Debounced search functionality across event content
- * - Event type filtering (All, Push, PR, Issues, Watch)
+ * - Event type filtering (All, Push, Create, PR, Issues, Watch)
  * - Scroll to top functionality
  * - Loading, empty, and error states
  * - Advanced coroutine patterns for performance
@@ -56,7 +56,6 @@ fun EventsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(EventFilterType.All) }
 
-    // Debounced search query for better performance
     val debouncedSearchQuery by remember(searchQuery) {
         derivedStateOf { searchQuery }
     }
@@ -79,16 +78,8 @@ fun EventsScreen(
         }
     }
 
-    // Start polling when screen loads
     LaunchedEffect(Unit) {
         vm.startPolling()
-    }
-
-    // Cleanup when screen is disposed
-    DisposableEffect(Unit) {
-        onDispose {
-            // The ViewModel will handle cleanup in onCleared()
-        }
     }
 
     LaunchedEffect(errorMessage) {

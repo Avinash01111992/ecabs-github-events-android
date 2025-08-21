@@ -33,7 +33,6 @@ class EventsViewModel @Inject constructor(
 
     private var pollJob: Job? = null
 
-    // Polling is now manually controlled by the app
     fun startPolling() {
         pollJob?.cancel()
         pollJob = viewModelScope.launch {
@@ -43,7 +42,7 @@ class EventsViewModel @Inject constructor(
                     countdownTimer()
                 } catch (e: Exception) {
                     handleError(e)
-                    delay(5000) // Simple delay on error
+                    delay(5000)
                 }
             }
         }
