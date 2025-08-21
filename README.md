@@ -107,9 +107,10 @@ The app showcases comprehensive event details for different event types:
 ## 🚀 **Getting Started**
 
 ### **Prerequisites:**
-- **Android Studio** Koala or newer (AGP 8.1.4+)
-- **JDK 17** (Required for Gradle 8.5+)
-- **Gradle 8.5** (Compatible with AGP 8.1.4)
+- **Android Studio** Hedgehog or newer (AGP 8.12.1+)
+- **JDK 21** (Required for Gradle 8.14.3+ and modern Android development)
+- **Gradle 8.14.3** (Latest version compatible with AGP 8.12.1)
+- **Kotlin 2.2.10** (Latest Kotlin version with Compose support)
 
 ### **Quick Start:**
 1. **Clone the repository:**
@@ -121,7 +122,7 @@ The app showcases comprehensive event details for different event types:
 2. **Open in Android Studio:**
    - Open the project in Android Studio
    - Sync Gradle files
-   - Set Gradle JDK to JDK 17 if prompted
+   - Set Gradle JDK to JDK 21 if prompted
 
 3. **Optional - Add GitHub Token:**
    - Add `GITHUB_TOKEN=ghp_xxx` to `~/.gradle/gradle.properties`
