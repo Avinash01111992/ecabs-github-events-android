@@ -6,23 +6,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.ecabs.events.data.model.GitHubEvent
 import com.ecabs.events.ui.EventsUiState
-import com.ecabs.events.ui.EventsViewModel
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class FakeEventsViewModel(
     initialState: EventsUiState = EventsUiState.Empty
-) : EventsViewModel(FakeEventsRepository()) {
+) {
     
     private val _uiState = mutableStateOf(initialState)
-    override val uiState: State<EventsUiState> = _uiState
+    val uiState: StateFlow<EventsUiState> = _uiState.asStateFlow()
     
     private val _isRefreshing = mutableStateOf(false)
-    override val isRefreshing: State<Boolean> = _isRefreshing
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
     
     private val _countdown = mutableStateOf(30)
-    override val countdown: State<Int> = _countdown
+    val countdown: StateFlow<Int> = _countdown.asStateFlow()
     
     private val _errorMessage = mutableStateOf<String?>(null)
-    override val errorMessage: State<String?> = _errorMessage
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
     
     fun setUiState(state: EventsUiState) {
         _uiState.value = state
@@ -39,12 +40,16 @@ class FakeEventsViewModel(
     fun setErrorMessage(message: String?) {
         _errorMessage.value = message
     }
-}
-
-class FakeEventsRepository : com.ecabs.events.data.EventsRepository {
-    override suspend fun fetchNewEvents(): com.ecabs.events.data.FetchResult {
-        return com.ecabs.events.data.FetchResult(emptyList(), 30, false)
+    
+    fun startPolling() {
+        // No-op for testing
     }
     
-    override fun pollInterval(): Int = 30
+    fun refreshEvents() {
+        // No-op for testing
+    }
+    
+    fun clearError() {
+        _errorMessage.value = null
+    }
 }
