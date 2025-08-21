@@ -181,6 +181,8 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 ## 🎨 **UI/UX Features**
 
 ### **List Screen:**
+<img width="329" height="726" alt="Events List Screen" src="https://github.com/user-attachments/assets/a3b2908a-95f7-4af8-ad46-4cc91665c306" />
+
 **Features:**
 - **Search Bar**: Real-time search with debouncing
 - **Filter Chips**: Event type filtering (All, Push, PR, Issues, Create, Watch)
@@ -190,6 +192,7 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 - **Real-time Countdown**: Shows next refresh time (e.g., "Next refresh: 37s")
 
 ### **Detail Screen:**
+<img width="329" height="726" alt="Event Details Screen" src="https://github.com/user-attachments/assets/a0e9bcda-cc22-4942-8a37-1ffbb7b28e74" />
 
 **Features:**
 - **Event Information**: Comprehensive event details with ID, type, and timestamps
@@ -279,21 +282,4 @@ This project is created for the eCabs Technologies Android Engineer code challen
 
 ---
 
-## 📸 **Screenshots Added Successfully!**
 
-Your beautiful app screenshots are now displayed in the README! 🎉
-
-**What's Now Visible:**
-- ✅ **Main Events List Screen** - Shows the beautiful Material 3 design
-- ✅ **Event Details Screens** - All 5 event types in a clean table format
-- ✅ **Professional Appearance** - Ready to impress the eCabs team!
-
-**Screenshots Showcase:**
-- Modern Material 3 UI design
-- Comprehensive event information
-- Beautiful card layouts and typography
-- Professional user experience
-
----
-
-**Your README now has a stunning visual presentation that will make a strong impression!** 🚀
