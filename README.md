@@ -5,6 +5,8 @@ A **production-ready, enterprise-grade** Android application built with modern A
 ## 📱 **App Screenshots**
 
 ### **Main Events List Screen**
+![GitHub Events List](./screenshots/main-list-screen.png)
+
 *Beautiful Material 3 design with search, filters, and real-time event updates*
 
 **Features visible in the main screen:**
@@ -18,6 +20,11 @@ A **production-ready, enterprise-grade** Android application built with modern A
 ### **Event Details Screens**
 The app showcases comprehensive event details for different event types:
 
+| Issues Event | Push Event | Pull Request Event | Create Event | Watch Event |
+|--------------|------------|-------------------|--------------|-------------|
+| ![Issues Event](./screenshots/issues-event.png) | ![Push Event](./screenshots/push-event.png) | ![PR Event](./screenshots/pr-event.png) | ![Create Event](./screenshots/create-event.png) | ![Watch Event](./screenshots/watch-event.png) |
+
+**Event Type Details:**
 | Event Type | Description | Key Information Displayed |
 |------------|-------------|---------------------------|
 | **Issues Event** | Issue creation and management | Event ID, Type, Actor, Repository, Action |
@@ -173,6 +180,8 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 ## 🎨 **UI/UX Features**
 
 ### **List Screen:**
+![List Screen Features](./screenshots/list-features.png)
+
 **Features:**
 - **Search Bar**: Real-time search with debouncing
 - **Filter Chips**: Event type filtering (All, Push, PR, Issues, Create, Watch)
@@ -182,6 +191,8 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 - **Real-time Countdown**: Shows next refresh time (e.g., "Next refresh: 37s")
 
 ### **Detail Screen:**
+![Detail Screen Features](./screenshots/detail-features.png)
+
 **Features:**
 - **Event Information**: Comprehensive event details with ID, type, and timestamps
 - **Actor Information**: User profile details with IDs and usernames
@@ -270,35 +281,44 @@ This project is created for the eCabs Technologies Android Engineer code challen
 
 ---
 
-## 📸 **Adding Screenshots (Optional Enhancement)**
+## 📸 **Screenshots Ready for You!**
 
-To make this README even more impressive with actual screenshots:
+The README is now set up with placeholder image paths. Here's exactly what you need to do:
 
-### **Method 1: GitHub Issue Upload (Recommended)**
+### **📱 Required Screenshot Files:**
+
+**Main Screenshots:**
+1. **`./screenshots/main-list-screen.png`** - Main events list screen
+2. **`./screenshots/list-features.png`** - List screen showing features
+3. **`./screenshots/detail-features.png`** - Detail screen showing features
+
+**Event Type Screenshots:**
+4. **`./screenshots/issues-event.png`** - Issues event details
+5. **`./screenshots/push-event.png`** - Push event details  
+6. **`./screenshots/pr-event.png`** - Pull request event details
+7. **`./screenshots/create-event.png`** - Create event details
+8. **`./screenshots/watch-event.png`** - Watch event details
+
+### **🚀 How to Add Your Screenshots:**
+
 1. **Take screenshots** from your Android device/emulator
-2. **Go to any GitHub issue** in your repository
-3. **Drag and drop screenshots** into the issue
-4. **Copy the generated URLs** (they look like: `https://user-images.githubusercontent.com/...`)
-5. **Add them to this README** to replace the text descriptions
+2. **Save them** with the exact names listed above
+3. **Place them** in the `./screenshots/` folder
+4. **Commit and push** - the README will automatically show them!
 
-### **Method 2: Repository Assets**
-1. **Create a screenshots folder** in your repository
-2. **Add your screenshots** with descriptive names
-3. **Update the README** with relative paths
-
-### **Screenshot Guidelines:**
+### **📏 Screenshot Guidelines:**
 - **Resolution**: 1080x1920 or higher (portrait orientation)
 - **Quality**: High quality, clear text
 - **Content**: Show the most important features
 - **Consistency**: Similar lighting and styling
 
-### **Benefits of Adding Screenshots:**
-- **Visual Appeal**: Makes README much more engaging
-- **Feature Showcase**: Demonstrates the beautiful UI we built
-- **Professional Look**: Shows attention to detail
-- **Easy Understanding**: Team can quickly see what the app looks like
-- **Strong Impression**: Creates excellent first impression during code review
+### **✨ What Happens Next:**
+Once you add the screenshots:
+- **Beautiful visual README** with your app screenshots
+- **Professional appearance** that will impress the eCabs team
+- **Clear feature showcase** of what you've built
+- **Strong first impression** during code review
 
 ---
 
-**Note**: The current README is already comprehensive and professional without screenshots. Adding them would be an optional enhancement to make it even more impressive! 🎉
+**The README is ready! Just add your screenshots with the names above and they'll appear automatically!** 🎉
