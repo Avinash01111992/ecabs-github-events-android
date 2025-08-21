@@ -5,7 +5,7 @@ A **production-ready, enterprise-grade** Android application built with modern A
 ## 📱 **App Screenshots**
 
 ### **Main Events List Screen**
-<img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/a3b2908a-95f7-4af8-ad46-4cc91665c306" />
+<img width="329" height="726" alt="GitHub Events List Screen" src="https://github.com/user-attachments/assets/a3b2908a-95f7-4af8-ad46-4cc91665c306" />
 
 
 *Beautiful Material 3 design with search, filters, and real-time event updates*
@@ -23,12 +23,7 @@ The app showcases comprehensive event details for different event types:
 
 | Issues Event | Push Event | Pull Request Event | Create Event | Watch Event |
 |--------------|------------|-------------------|--------------|-------------|
-| <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/a0e9bcda-cc22-4942-8a37-1ffbb7b28e74" />
- | <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/98be199e-5fe1-4765-aa3f-3cffba7da603" />
- | <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/a4607efd-1315-4da1-86c5-45d4de080b3f" />
- | <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/36623dc6-e73f-4cb4-acb7-d8a43672b67b" />
- | <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/7fb9ca0a-dcde-4182-9d00-e671bb5b9ae8" />
- |
+| <img width="329" height="726" alt="Issues Event" src="https://github.com/user-attachments/assets/a0e9bcda-cc22-4942-8a37-1ffbb7b28e74" /> | <img width="329" height="726" alt="Push Event" src="https://github.com/user-attachments/assets/98be199e-5fe1-4765-aa3f-3cffba7da603" /> | <img width="329" height="726" alt="Pull Request Event" src="https://github.com/user-attachments/assets/a4607efd-1315-4da1-86c5-45d4de080b3f" /> | <img width="329" height="726" alt="Create Event" src="https://github.com/user-attachments/assets/36623dc6-e73f-4cb4-acb7-d8a43672b67b" /> | <img width="329" height="726" alt="Watch Event" src="https://github.com/user-attachments/assets/7fb9ca0a-dcde-4182-9d00-e671bb5b9ae8" /> |
 
 **Event Type Details:**
 | Event Type | Description | Key Information Displayed |
@@ -186,8 +181,6 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 ## 🎨 **UI/UX Features**
 
 ### **List Screen:**
-![List Screen Features](./screenshots/list-features.png)
-
 **Features:**
 - **Search Bar**: Real-time search with debouncing
 - **Filter Chips**: Event type filtering (All, Push, PR, Issues, Create, Watch)
@@ -197,7 +190,6 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 - **Real-time Countdown**: Shows next refresh time (e.g., "Next refresh: 37s")
 
 ### **Detail Screen:**
-![Detail Screen Features](./screenshots/detail-features.png)
 
 **Features:**
 - **Event Information**: Comprehensive event details with ID, type, and timestamps
@@ -287,44 +279,21 @@ This project is created for the eCabs Technologies Android Engineer code challen
 
 ---
 
-## 📸 **Screenshots Ready for You!**
+## 📸 **Screenshots Added Successfully!**
 
-The README is now set up with placeholder image paths. Here's exactly what you need to do:
+Your beautiful app screenshots are now displayed in the README! 🎉
 
-### **📱 Required Screenshot Files:**
+**What's Now Visible:**
+- ✅ **Main Events List Screen** - Shows the beautiful Material 3 design
+- ✅ **Event Details Screens** - All 5 event types in a clean table format
+- ✅ **Professional Appearance** - Ready to impress the eCabs team!
 
-**Main Screenshots:**
-1. **`./screenshots/main-list-screen.png`** - Main events list screen
-2. **`./screenshots/list-features.png`** - List screen showing features
-3. **`./screenshots/detail-features.png`** - Detail screen showing features
-
-**Event Type Screenshots:**
-4. **`./screenshots/issues-event.png`** - Issues event details
-5. **`./screenshots/push-event.png`** - Push event details  
-6. **`./screenshots/pr-event.png`** - Pull request event details
-7. **`./screenshots/create-event.png`** - Create event details
-8. **`./screenshots/watch-event.png`** - Watch event details
-
-### **🚀 How to Add Your Screenshots:**
-
-1. **Take screenshots** from your Android device/emulator
-2. **Save them** with the exact names listed above
-3. **Place them** in the `./screenshots/` folder
-4. **Commit and push** - the README will automatically show them!
-
-### **📏 Screenshot Guidelines:**
-- **Resolution**: 1080x1920 or higher (portrait orientation)
-- **Quality**: High quality, clear text
-- **Content**: Show the most important features
-- **Consistency**: Similar lighting and styling
-
-### **✨ What Happens Next:**
-Once you add the screenshots:
-- **Beautiful visual README** with your app screenshots
-- **Professional appearance** that will impress the eCabs team
-- **Clear feature showcase** of what you've built
-- **Strong first impression** during code review
+**Screenshots Showcase:**
+- Modern Material 3 UI design
+- Comprehensive event information
+- Beautiful card layouts and typography
+- Professional user experience
 
 ---
 
-**The README is ready! Just add your screenshots with the names above and they'll appear automatically!** 🎉
+**Your README now has a stunning visual presentation that will make a strong impression!** 🚀
