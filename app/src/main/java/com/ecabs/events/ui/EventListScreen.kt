@@ -79,6 +79,18 @@ fun EventsScreen(
         }
     }
 
+    // Start polling when screen loads
+    LaunchedEffect(Unit) {
+        vm.startPolling()
+    }
+
+    // Cleanup when screen is disposed
+    DisposableEffect(Unit) {
+        onDispose {
+            // The ViewModel will handle cleanup in onCleared()
+        }
+    }
+
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             delay(Constants.Timeouts.ERROR_AUTO_CLEAR_DELAY)

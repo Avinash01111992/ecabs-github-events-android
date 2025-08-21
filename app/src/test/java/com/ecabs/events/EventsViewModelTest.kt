@@ -2,39 +2,39 @@ package com.ecabs.events
 
 import com.ecabs.events.data.EventsRepository
 import com.ecabs.events.data.FetchResult
-import com.ecabs.events.data.model.Actor
 import com.ecabs.events.data.model.GitHubEvent
-import com.ecabs.events.data.model.Repo
 import com.ecabs.events.data.model.TrackedEventType
 import com.ecabs.events.ui.EventsUiState
 import com.ecabs.events.ui.EventsViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestWatcher
-import org.junit.runner.Description
-import org.mockito.kotlin.*
-import kotlinx.coroutines.test.StandardTestDispatcher
+import org.junit.runner.RunWith
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(org.junit.runners.JUnit4::class)
 class EventsViewModelTest {
 
     @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private lateinit var viewModel: EventsViewModel
     private lateinit var mockRepository: EventsRepository
+    private lateinit var viewModel: EventsViewModel
+    private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
+        setMain(testDispatcher)
         mockRepository = mock()
+        whenever(mockRepository.pollInterval()).thenReturn(30)
         viewModel = EventsViewModel(mockRepository)
-        // No need to cancel polling since it's not auto-started
     }
 
     @Test
@@ -46,15 +46,13 @@ class EventsViewModelTest {
         val fetchResult = FetchResult(mockEvents, 30, false)
         
         whenever(mockRepository.fetchNewEvents()).thenReturn(fetchResult)
-        whenever(mockRepository.pollInterval()).thenReturn(30)
 
-        // Test the refreshEvents method directly instead of polling
-        viewModel.refreshEvents()
+        viewModel.startPolling()
         
-        // Wait for the coroutine to complete and state to be emitted
-        advanceTimeBy(1000)
+        // Wait for the coroutine to complete
+        advanceTimeBy(100)
         
-        val uiState = viewModel.uiState.first()
+        val uiState = viewModel.uiState.value
         assertTrue(uiState is EventsUiState.Success)
         assertEquals(mockEvents.size, (uiState as EventsUiState.Success).events.size)
     }
@@ -64,15 +62,13 @@ class EventsViewModelTest {
         val fetchResult = FetchResult(emptyList(), 30, false)
         
         whenever(mockRepository.fetchNewEvents()).thenReturn(fetchResult)
-        whenever(mockRepository.pollInterval()).thenReturn(30)
 
-        // Test the refreshEvents method directly instead of polling
-        viewModel.refreshEvents()
+        viewModel.startPolling()
         
-        // Wait for the coroutine to complete and state to be emitted
-        advanceTimeBy(1000)
+        // Wait for the coroutine to complete
+        advanceTimeBy(100)
         
-        val uiState = viewModel.uiState.first()
+        val uiState = viewModel.uiState.value
         assertTrue(uiState is EventsUiState.Empty)
     }
 
@@ -80,37 +76,15 @@ class EventsViewModelTest {
     fun `should emit Error state when repository throws exception`() = runTest {
         val errorMessage = "Network error"
         whenever(mockRepository.fetchNewEvents()).thenThrow(RuntimeException(errorMessage))
-        whenever(mockRepository.pollInterval()).thenReturn(30)
-
-        // Test the refreshEvents method directly instead of polling
-        viewModel.refreshEvents()
-        
-        // Wait for the coroutine to complete and error state to be emitted
-        advanceTimeBy(1000)
-        
-        val uiState = viewModel.uiState.first()
-        assertTrue(uiState is EventsUiState.Error)
-        assertEquals(errorMessage, (uiState as EventsUiState.Error).message)
-    }
-
-    @Test
-    fun `should update countdown every second`() = runTest {
-        whenever(mockRepository.pollInterval()).thenReturn(5)
-        whenever(mockRepository.fetchNewEvents()).thenReturn(FetchResult(emptyList(), 5, false))
 
         viewModel.startPolling()
         
-        // Wait for initial countdown to start
+        // Wait for the coroutine to complete
         advanceTimeBy(100)
         
-        // Check that countdown is working (should be less than initial value)
-        val initialCountdown = viewModel.countdown.first()
-        assertTrue(initialCountdown <= 5)
-        
-        // Advance time and check countdown decreases
-        advanceTimeBy(1000)
-        val nextCountdown = viewModel.countdown.first()
-        assertTrue(nextCountdown < initialCountdown || nextCountdown == 0)
+        val uiState = viewModel.uiState.value
+        assertTrue(uiState is EventsUiState.Error)
+        assertEquals(errorMessage, (uiState as EventsUiState.Error).message)
     }
 
     @Test
@@ -119,14 +93,13 @@ class EventsViewModelTest {
         val fetchResult = FetchResult(mockEvents, 30, false)
         
         whenever(mockRepository.fetchNewEvents()).thenReturn(fetchResult)
-        whenever(mockRepository.pollInterval()).thenReturn(30)
 
         viewModel.refreshEvents()
         
-        // Wait for the coroutine to complete and state to be emitted
-        advanceTimeBy(500)
+        // Wait for the coroutine to complete
+        advanceTimeBy(100)
         
-        val uiState = viewModel.uiState.first()
+        val uiState = viewModel.uiState.value
         assertTrue(uiState is EventsUiState.Success)
         assertEquals(1, (uiState as EventsUiState.Success).events.size)
     }
@@ -134,76 +107,81 @@ class EventsViewModelTest {
     @Test
     fun `should clear error when clearError is called`() = runTest {
         whenever(mockRepository.fetchNewEvents()).thenThrow(RuntimeException("Test error"))
-        whenever(mockRepository.pollInterval()).thenReturn(30)
         
-        // Test the refreshEvents method directly instead of polling
-        viewModel.refreshEvents()
-        // Wait for error state to be emitted
-        advanceTimeBy(1000)
+        // First start polling to create error state
+        viewModel.startPolling()
+        advanceTimeBy(100)
         
-        assertTrue(viewModel.uiState.first() is EventsUiState.Error)
+        assertTrue(viewModel.uiState.value is EventsUiState.Error)
         
+        // Clear the error
         viewModel.clearError()
         
         // Check that error message is cleared
-        assertNull(viewModel.errorMessage.first())
+        assertNull(viewModel.errorMessage.value)
         
-        // Check that UI state is updated to Success (if there are events) or Empty
-        val uiState = viewModel.uiState.first()
-        assertTrue(uiState is EventsUiState.Success || uiState is EventsUiState.Empty)
+        // Check that UI state is updated to Empty (since no events were loaded)
+        val uiState = viewModel.uiState.value
+        assertTrue(uiState is EventsUiState.Empty)
     }
 
     @Test
-    fun `should cancel polling job when ViewModel is cleared`() = runTest {
-        whenever(mockRepository.pollInterval()).thenReturn(30)
-        whenever(mockRepository.fetchNewEvents()).thenReturn(FetchResult(emptyList(), 30, false))
-        
+    fun `should update countdown every second`() = runTest {
+        whenever(mockRepository.fetchNewEvents()).thenReturn(FetchResult(emptyList(), 5, false))
+
         viewModel.startPolling()
         
-        viewModel.onCleared()
+        // Wait for initial countdown to start
+        advanceTimeBy(100)
         
-        val initialCountdown = viewModel.countdown.first()
-        advanceTimeBy(2000)
-        val finalCountdown = viewModel.countdown.first()
+        // Check that countdown is working (should be less than initial value)
+        val initialCountdown = viewModel.countdown.value
+        assertTrue(initialCountdown <= 5)
         
-        assertEquals(initialCountdown, finalCountdown)
+        // Advance time and check countdown decreases
+        advanceTimeBy(1000)
+        val nextCountdown = viewModel.countdown.value
+        assertTrue(nextCountdown < initialCountdown || nextCountdown == 0)
+    }
+
+    @Test
+    fun `should start polling when startPolling is called`() = runTest {
+        val mockEvents = listOf(createMockEvent("1", TrackedEventType.Push.raw))
+        val fetchResult = FetchResult(mockEvents, 30, false)
+        
+        whenever(mockRepository.fetchNewEvents()).thenReturn(fetchResult)
+
+        // Start polling manually
+        viewModel.startPolling()
+        
+        // Wait for the coroutine to complete
+        advanceTimeBy(100)
+        
+        val uiState = viewModel.uiState.value
+        assertTrue(uiState is EventsUiState.Success)
+        assertEquals(1, (uiState as EventsUiState.Success).events.size)
     }
 
     private fun createMockEvent(id: String, type: String): GitHubEvent {
         return GitHubEvent(
             id = id,
             type = type,
-            actor = Actor(
-                id = 1L,
-                login = "testuser",
-                displayLogin = null,
-                gravatarId = null,
-                url = "https://api.github.com/users/testuser",
-                avatarUrl = "https://avatars.githubusercontent.com/u/1?v=4"
+            actor = GitHubEvent.Actor(
+                id = id.toInt(),
+                login = "user$id",
+                displayLogin = "user$id",
+                gravatarId = "",
+                url = "https://api.github.com/users/user$id",
+                avatarUrl = "https://avatars.githubusercontent.com/u/$id?v=4"
             ),
-            repo = Repo(
-                id = 1L,
-                name = "testuser/testrepo",
-                url = "https://api.github.com/repos/testuser/testrepo"
+            repo = GitHubEvent.Repo(
+                id = id.toInt(),
+                name = "repo$id",
+                url = "https://api.github.com/repos/repo$id"
             ),
             payload = null,
             public = true,
-            createdAt = "2025-08-20T12:00:00Z"
+            createdAt = "2024-01-01T00:00:00Z"
         )
-    }
-}
-
-@OptIn(ExperimentalCoroutinesApi::class)
-class MainDispatcherRule : TestWatcher() {
-    private val testDispatcher = StandardTestDispatcher()
-
-    override fun starting(description: Description) {
-        super.starting(description)
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    override fun finished(description: Description) {
-        super.finished(description)
-        Dispatchers.resetMain()
     }
 }

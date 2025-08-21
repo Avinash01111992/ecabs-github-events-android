@@ -4,13 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ecabs.events.data.EventsRepository
 import com.ecabs.events.data.model.GitHubEvent
-import com.ecabs.events.util.Constants
-import com.ecabs.events.util.CoroutineUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,13 +15,7 @@ class EventsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _events = MutableStateFlow<List<GitHubEvent>>(emptyList())
-    val events: StateFlow<List<GitHubEvent>> = _events
-        .map { events -> events.sortedByDescending { it.createdAt } }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    val events: StateFlow<List<GitHubEvent>> = _events.asStateFlow()
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
@@ -43,24 +33,17 @@ class EventsViewModel @Inject constructor(
 
     private var pollJob: Job? = null
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-        handleError(exception)
-    }
-
-    // Polling is started manually by the app, not automatically in ViewModel
-
+    // Polling is now manually controlled by the app
     fun startPolling() {
         pollJob?.cancel()
-        pollJob = viewModelScope.launch(exceptionHandler) {
-            supervisorScope {
-                while (true) {
-                    try {
-                        pollEvents()
-                        countdownTimer()
-                    } catch (e: Exception) {
-                        handleError(e)
-                        delay(Constants.Timeouts.ERROR_RETRY_DELAY)
-                    }
+        pollJob = viewModelScope.launch {
+            while (true) {
+                try {
+                    pollEvents()
+                    countdownTimer()
+                } catch (e: Exception) {
+                    handleError(e)
+                    delay(5000) // Simple delay on error
                 }
             }
         }
@@ -69,41 +52,32 @@ class EventsViewModel @Inject constructor(
     private suspend fun pollEvents() {
         _isRefreshing.value = true
         
-        val result = CoroutineUtils.retryWithBackoff(
-            maxAttempts = Constants.Timeouts.RETRY_MAX_ATTEMPTS,
-            initialDelay = Constants.Timeouts.RETRY_INITIAL_DELAY,
-            maxDelay = Constants.Timeouts.RETRY_MAX_DELAY,
-            factor = Constants.Timeouts.RETRY_BACKOFF_FACTOR
-        ) {
-            withContext(Dispatchers.IO) {
-                repo.fetchNewEvents()
+        try {
+            val result = repo.fetchNewEvents()
+            _nextPoll.value = result.nextPollSeconds
+            
+            if (!result.notModified && result.events.isNotEmpty()) {
+                updateEvents(result.events)
+                _uiState.value = EventsUiState.Success(_events.value)
+            } else if (_events.value.isEmpty()) {
+                _uiState.value = EventsUiState.Empty
+            } else {
+                _uiState.value = EventsUiState.Success(_events.value)
             }
+            
+            _errorMessage.value = null
+        } catch (e: Exception) {
+            handleError(e)
+        } finally {
+            _isRefreshing.value = false
         }
-        
-        _nextPoll.value = result.nextPollSeconds
-        
-        if (!result.notModified && result.events.isNotEmpty()) {
-            updateEvents(result.events)
-            _uiState.value = EventsUiState.Success(_events.value)
-        } else if (_events.value.isEmpty()) {
-            _uiState.value = EventsUiState.Empty
-        } else {
-            _uiState.value = EventsUiState.Success(_events.value)
-        }
-        
-        _isRefreshing.value = false
-        _errorMessage.value = null
     }
 
     private suspend fun countdownTimer() {
         val sleep = maxOf(10, _nextPoll.value)
-        flow {
-            repeat(sleep + 1) { remaining ->
-                emit(sleep - remaining)
-                delay(1000L)
-            }
-        }.collect { remaining ->
-            _countdown.value = remaining
+        repeat(sleep + 1) { remaining ->
+            _countdown.value = sleep - remaining
+            delay(1000L)
         }
     }
 
@@ -116,30 +90,22 @@ class EventsViewModel @Inject constructor(
     }
 
     fun refreshEvents() {
-        viewModelScope.launch(exceptionHandler) {
+        viewModelScope.launch {
             try {
                 _isRefreshing.value = true
                 
-                val result = CoroutineUtils.retryWithBackoff(
-                    maxAttempts = Constants.Timeouts.RETRY_MAX_ATTEMPTS,
-                    initialDelay = Constants.Timeouts.RETRY_INITIAL_DELAY,
-                    maxDelay = Constants.Timeouts.RETRY_MAX_DELAY,
-                    factor = Constants.Timeouts.RETRY_BACKOFF_FACTOR
-                ) {
-                    withContext(Dispatchers.IO) {
-                        repo.fetchNewEvents()
-                    }
-                }
+                val result = repo.fetchNewEvents()
                 
                 if (!result.notModified && result.events.isNotEmpty()) {
                     updateEvents(result.events)
                     _uiState.value = EventsUiState.Success(_events.value)
                 }
                 
-                _isRefreshing.value = false
                 _errorMessage.value = null
             } catch (e: Exception) {
                 handleError(e)
+            } finally {
+                _isRefreshing.value = false
             }
         }
     }
@@ -147,13 +113,7 @@ class EventsViewModel @Inject constructor(
     private fun handleError(exception: Throwable) {
         _isRefreshing.value = false
         
-        val errorMessage = when (exception) {
-            is IOException -> Constants.ErrorMessages.NETWORK_ERROR_PREFIX + (exception.message ?: Constants.ErrorMessages.UNKNOWN_ERROR)
-            is HttpException -> Constants.ErrorMessages.API_ERROR_PREFIX + (exception.message ?: Constants.ErrorMessages.UNKNOWN_ERROR)
-            is CancellationException -> return
-            else -> Constants.ErrorMessages.UNEXPECTED_ERROR_PREFIX + (exception.message ?: Constants.ErrorMessages.UNKNOWN_ERROR)
-        }
-        
+        val errorMessage = exception.message ?: "Unknown error occurred"
         _errorMessage.value = errorMessage
         _uiState.value = EventsUiState.Error(errorMessage)
     }
@@ -161,7 +121,11 @@ class EventsViewModel @Inject constructor(
     fun clearError() {
         _errorMessage.value = null
         if (_uiState.value is EventsUiState.Error) {
-            _uiState.value = EventsUiState.Success(_events.value)
+            _uiState.value = if (_events.value.isNotEmpty()) {
+                EventsUiState.Success(_events.value)
+            } else {
+                EventsUiState.Empty
+            }
         }
     }
 
