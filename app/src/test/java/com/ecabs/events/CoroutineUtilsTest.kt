@@ -2,7 +2,6 @@ package com.ecabs.events
 
 import com.ecabs.events.util.CoroutineUtils
 import kotlinx.coroutines.*
-
 import kotlinx.coroutines.test.*
 import org.junit.Test
 import org.junit.Assert.*
@@ -10,9 +9,6 @@ import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CoroutineUtilsTest {
-
-
-
     @Test
     fun `launchDebounced should delay execution`() = runTest {
         var executed = false
