@@ -5,16 +5,28 @@ A **production-ready, enterprise-grade** Android application built with modern A
 ## 📱 **App Screenshots**
 
 ### **Main Events List Screen**
-![GitHub Events List](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/list-screen.png)
-
 *Beautiful Material 3 design with search, filters, and real-time event updates*
 
-### **Event Details Screens**
-| Issues Event | Push Event | Pull Request Event | Create Event | Watch Event |
-|--------------|------------|-------------------|--------------|-------------|
-| ![Issues Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/issues-event.png) | ![Push Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/push-event.png) | ![PR Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/pr-event.png) | ![Create Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/create-event.png) | ![Watch Event](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/watch-event.png) |
+**Features visible in the main screen:**
+- Search bar with magnifying glass icon
+- Filter chips: All, Push, PR, Issues, Create, Watch
+- Event cards with user avatars and repository information
+- Real-time countdown timer showing next refresh
+- Pull-to-refresh functionality
+- Scroll-to-top floating action button
 
-*Comprehensive event details with organized information cards and action buttons*
+### **Event Details Screens**
+The app showcases comprehensive event details for different event types:
+
+| Event Type | Description | Key Information Displayed |
+|------------|-------------|---------------------------|
+| **Issues Event** | Issue creation and management | Event ID, Type, Actor, Repository, Action |
+| **Push Event** | Code commits and updates | Push ID, Commits count, Branch, SHA hashes |
+| **Pull Request Event** | PR activities and workflows | PR details, Action, Repository info |
+| **Create Event** | New branches, tags, repos | Reference type, Branch name, Description |
+| **Watch Event** | Repository starring | Action, User details, Repository info |
+
+*Each event type displays organized information cards with action buttons for viewing profiles and opening repositories*
 
 ## 🎯 **Code Challenge Requirements (All Completed ✅)**
 
@@ -161,8 +173,6 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 ## 🎨 **UI/UX Features**
 
 ### **List Screen:**
-![GitHub Events List Screen](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/list-screen.png)
-
 **Features:**
 - **Search Bar**: Real-time search with debouncing
 - **Filter Chips**: Event type filtering (All, Push, PR, Issues, Create, Watch)
@@ -172,8 +182,6 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 - **Real-time Countdown**: Shows next refresh time (e.g., "Next refresh: 37s")
 
 ### **Detail Screen:**
-![Event Details Screen](https://github.com/Avinash01111992/ecabs-github-events-android/assets/your-username/screenshots/detail-screen.png)
-
 **Features:**
 - **Event Information**: Comprehensive event details with ID, type, and timestamps
 - **Actor Information**: User profile details with IDs and usernames
@@ -262,24 +270,35 @@ This project is created for the eCabs Technologies Android Engineer code challen
 
 ---
 
-## 📸 **Adding Screenshots**
+## 📸 **Adding Screenshots (Optional Enhancement)**
 
-To make this README complete with actual screenshots:
+To make this README even more impressive with actual screenshots:
 
-1. **Create a screenshots folder** in your repository:
-   ```bash
-   mkdir -p screenshots
-   ```
+### **Method 1: GitHub Issue Upload (Recommended)**
+1. **Take screenshots** from your Android device/emulator
+2. **Go to any GitHub issue** in your repository
+3. **Drag and drop screenshots** into the issue
+4. **Copy the generated URLs** (they look like: `https://user-images.githubusercontent.com/...`)
+5. **Add them to this README** to replace the text descriptions
 
-2. **Add your screenshots** with descriptive names:
-   - `list-screen.png` - Main events list
-   - `issues-event.png` - Issues event details
-   - `push-event.png` - Push event details
-   - `pr-event.png` - Pull request event details
-   - `watch-event.png` - Watch event details
+### **Method 2: Repository Assets**
+1. **Create a screenshots folder** in your repository
+2. **Add your screenshots** with descriptive names
+3. **Update the README** with relative paths
 
-3. **Update the image paths** in this README to point to your actual screenshots
+### **Screenshot Guidelines:**
+- **Resolution**: 1080x1920 or higher (portrait orientation)
+- **Quality**: High quality, clear text
+- **Content**: Show the most important features
+- **Consistency**: Similar lighting and styling
 
-4. **Commit and push** the screenshots to make the README fully visual!
+### **Benefits of Adding Screenshots:**
+- **Visual Appeal**: Makes README much more engaging
+- **Feature Showcase**: Demonstrates the beautiful UI we built
+- **Professional Look**: Shows attention to detail
+- **Easy Understanding**: Team can quickly see what the app looks like
+- **Strong Impression**: Creates excellent first impression during code review
 
-*Note: The current image paths are placeholders. Replace them with your actual screenshot URLs once uploaded.*
+---
+
+**Note**: The current README is already comprehensive and professional without screenshots. Adding them would be an optional enhancement to make it even more impressive! 🎉
