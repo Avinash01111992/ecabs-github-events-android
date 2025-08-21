@@ -5,13 +5,14 @@ A **production-ready, enterprise-grade** Android application built with modern A
 ## 📱 **App Screenshots**
 
 ### **Main Events List Screen**
-![GitHub Events List](./screenshots/main-list-screen.png)
+<img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/a3b2908a-95f7-4af8-ad46-4cc91665c306" />
+
 
 *Beautiful Material 3 design with search, filters, and real-time event updates*
 
 **Features visible in the main screen:**
 - Search bar with magnifying glass icon
-- Filter chips: All, Push, PR, Issues, Create, Watch
+- Filter chips: All, Push, PR, Issues, Watch
 - Event cards with user avatars and repository information
 - Real-time countdown timer showing next refresh
 - Pull-to-refresh functionality
@@ -22,7 +23,12 @@ The app showcases comprehensive event details for different event types:
 
 | Issues Event | Push Event | Pull Request Event | Create Event | Watch Event |
 |--------------|------------|-------------------|--------------|-------------|
-| ![Issues Event](./screenshots/issues-event.png) | ![Push Event](./screenshots/push-event.png) | ![PR Event](./screenshots/pr-event.png) | ![Create Event](./screenshots/create-event.png) | ![Watch Event](./screenshots/watch-event.png) |
+| <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/a0e9bcda-cc22-4942-8a37-1ffbb7b28e74" />
+ | <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/98be199e-5fe1-4765-aa3f-3cffba7da603" />
+ | <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/a4607efd-1315-4da1-86c5-45d4de080b3f" />
+ | <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/36623dc6-e73f-4cb4-acb7-d8a43672b67b" />
+ | <img width="329" height="726" alt="image" src="https://github.com/user-attachments/assets/7fb9ca0a-dcde-4182-9d00-e671bb5b9ae8" />
+ |
 
 **Event Type Details:**
 | Event Type | Description | Key Information Displayed |
