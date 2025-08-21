@@ -1,21 +1,21 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.dagger.hilt.android")
     kotlin("kapt")
 }
 
-// Read optional GitHub token from project properties
 val githubToken: String = project.findProperty("GITHUB_TOKEN")?.toString() ?: ""
 
 android {
     namespace = "com.ecabs.events"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.ecabs.events"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -41,19 +41,21 @@ android {
         compose = true
         buildConfig = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += listOf(
-            "-Xsuppress-version-warnings",
-            "-Xopt-in=kotlin.RequiresOptIn"
-        )
+    kotlin {
+        jvmToolchain(21)
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+            freeCompilerArgs.addAll(
+                "-Xsuppress-version-warnings",
+                "-Xopt-in=kotlin.RequiresOptIn",
+                "-Xannotation-default-target=param-property"
+            )
+        }
     }
     packaging {
         resources {
@@ -76,51 +78,47 @@ kapt {
     }
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
+    val composeBom = platform("androidx.compose:compose-bom:2025.02.00")
     implementation(composeBom)
 
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation("androidx.activity:activity-compose:1.9.1")
+    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
+    implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3:1.2.1")
-    implementation("androidx.compose.material:material:1.6.8") // align with BOM-era to avoid surprises
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.navigation:navigation-compose:2.9.3")
 
     // Hilt (built on Dagger)
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    kapt("com.google.dagger:hilt-compiler:2.51.1")
+    implementation("com.google.dagger:hilt-android:2.57")
+    kapt("com.google.dagger:hilt-compiler:2.57")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Retrofit, Moshi, OkHttp
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-moshi:3.0.0")
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
 
     // Coil for images
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
-    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.1.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
+    testImplementation("org.mockito:mockito-core:5.19.0")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.24")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.24")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:2.0.21")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.21")
     
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

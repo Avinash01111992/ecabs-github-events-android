@@ -1,15 +1,15 @@
-// Top-level build file
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.google.dagger:hilt-android-gradle-plugin:2.51.1")
+        classpath("com.google.dagger:hilt-android-gradle-plugin:2.57")
     }
 }
 plugins {
-    id("com.android.application") version "8.1.4" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.24" apply false
-    id("com.google.dagger.hilt.android") version "2.51.1" apply false
+    id("com.android.application") version "8.12.1" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.10" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.10" apply false   // ✅ add this
+    id("com.google.dagger.hilt.android") version "2.57" apply false
 }

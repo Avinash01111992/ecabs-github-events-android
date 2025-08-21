@@ -89,9 +89,26 @@ fun EventsScreen(
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
+    Scaffold(
+        topBar = {
             EventsTopAppBar(countdown = countdown)
+        },
+        floatingActionButton = {
+            ScrollToTopButton(
+                shouldShow = shouldShowScrollToTop,
+                onClick = { 
+                    scope.launch { 
+                        listState.animateScrollToItem(0) 
+                    } 
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             SearchAndFiltersSection(
                 searchQuery = searchQuery,
                 onSearchChange = { searchQuery = it },
@@ -107,16 +124,6 @@ fun EventsScreen(
                 onRetry = { vm.refreshEvents() }
             )
         }
-        
-        ScrollToTopButton(
-            shouldShow = shouldShowScrollToTop,
-            onClick = { 
-                scope.launch { 
-                    listState.animateScrollToItem(0) 
-                } 
-            },
-            modifier = Modifier.align(Alignment.BottomEnd)
-        )
     }
 }
 

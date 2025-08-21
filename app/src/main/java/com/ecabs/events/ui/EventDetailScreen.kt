@@ -37,20 +37,29 @@ fun EventDetailsScreen(event: GitHubEvent?, onBack: () -> Unit) {
     val context = LocalContext.current
     val repoWebUrl = remember(event) { event?.repo?.name?.let { EventUtils.buildRepoUrl(it) } }
 
-    Column(Modifier.fillMaxSize()) {
-        EventDetailTopAppBar(
-            event = event,
-            onBack = onBack,
-            onShare = { repoWebUrl?.let { IntentUtils.shareText(context, it) } }
-        )
-
+    Scaffold(
+        topBar = {
+            EventDetailTopAppBar(
+                event = event,
+                onBack = onBack,
+                onShare = { repoWebUrl?.let { IntentUtils.shareText(context, it) } }
+            )
+        }
+    ) { innerPadding ->
         if (event == null) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(Constants.UI.NO_EVENT_DATA, style = MaterialTheme.typography.titleMedium)
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
