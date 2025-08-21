@@ -15,7 +15,7 @@ A **production-ready, enterprise-grade** Android application built with modern A
 - Filter chips: All, Push, PR, Issues, Watch
 - Event cards with user avatars and repository information
 - Real-time countdown timer showing next refresh
-- Pull-to-refresh functionality
+
 - Scroll-to-top floating action button
 
 ### **Event Details Screens**
@@ -60,7 +60,7 @@ The app showcases comprehensive event details for different event types:
 ### **🎨 Advanced UI/UX Excellence:**
 - **Material 3 Design System** with dynamic theming support
 - **Custom Composable Widgets** for maintainable, reusable UI components
-- **Pull-to-Refresh** functionality with smooth animations
+
 - **Advanced Search** with debounced input (300ms delay)
 - **Smart Filtering** system (All, Push, PR, Issues, Watch)
 - **Scroll-to-Top** floating action button with smooth scrolling
@@ -187,7 +187,7 @@ UI (Compose) ←→ ViewModel ←→ Repository ←→ GitHub API
 - **Search Bar**: Real-time search with debouncing
 - **Filter Chips**: Event type filtering (All, Push, PR, Issues, Create, Watch)
 - **Event Cards**: Beautiful Material 3 cards with avatars and repository info
-- **Pull-to-Refresh**: Smooth refresh with loading indicator
+
 - **Scroll-to-Top**: Floating action button for easy navigation
 - **Real-time Countdown**: Shows next refresh time (e.g., "Next refresh: 37s")
 
