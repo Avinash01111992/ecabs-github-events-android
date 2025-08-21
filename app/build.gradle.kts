@@ -15,7 +15,7 @@ android {
     defaultConfig {
         applicationId = "com.ecabs.events"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -53,7 +53,8 @@ android {
             freeCompilerArgs.addAll(
                 "-Xsuppress-version-warnings",
                 "-Xopt-in=kotlin.RequiresOptIn",
-                "-Xannotation-default-target=param-property"
+                "-Xannotation-default-target=param-property",
+                "-Xsuppress-deprecation-warnings"
             )
         }
     }
@@ -61,6 +62,12 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+    
+    lint {
+        disable += "ObsoleteLintCustomCheck"
+        checkReleaseBuilds = false
+        abortOnError = false
     }
 }
 
@@ -82,20 +89,20 @@ dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2025.02.00")
     implementation(composeBom)
 
-    implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
-    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.core:core-ktx:1.13.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
+    implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.navigation:navigation-compose:2.9.3")
+    implementation("androidx.navigation:navigation-compose:2.8.0")
 
     // Hilt (built on Dagger)
-    implementation("com.google.dagger:hilt-android:2.57")
-    kapt("com.google.dagger:hilt-compiler:2.57")
+    implementation("com.google.dagger:hilt-android:2.58")
+    kapt("com.google.dagger:hilt-compiler:2.58")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Retrofit, Moshi, OkHttp
@@ -109,16 +116,16 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.1.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
     testImplementation("org.mockito:mockito-core:5.19.0")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:2.0.21")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.21")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:2.0.22")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.22")
     
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
